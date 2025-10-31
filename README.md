@@ -1,16 +1,18 @@
 # Coche 2 Inteligente
 
-Este es un proyecto de vehículo inteligente (Smart Car) diseñado para implementar funcionalidades de automatización y control.
+Proyecto de mejoras para un coche eléctrico con funcionalidades inteligentes de automatización y control.
 
 ## Descripción
 
-Coche 2 Inteligente es un proyecto educativo/experimental para el desarrollo de un sistema de control vehicular con capacidades inteligentes.
+Coche 2 Inteligente es un proyecto de mejoras y optimización para un vehículo eléctrico, incorporando capacidades de automatización, monitoreo y control inteligente del sistema eléctrico y sus componentes.
 
 ## Características
 
-- Sistema de control básico
+- Sistema de control para vehículo eléctrico
+- Monitoreo de batería y eficiencia energética
 - Capacidades de automatización
-- Integración con sensores
+- Integración con sensores de temperatura, voltaje y corriente
+- Gestión inteligente de energía
 
 ## Estado del Proyecto
 

@@ -1,4 +1,4 @@
-#include "hidden.h"
+#include "menu_hidden.h"
 #include "storage.h"
 #include "logger.h"
 #include "alerts.h"

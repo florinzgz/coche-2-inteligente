@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 // Configuración
-#include "config/pins.h"
-#include "config/settings.h"
+#include "pins.h"
+#include "settings.h"
 
 // Núcleo
 #include "core/system.h"
@@ -48,8 +48,8 @@ void setup() {
     Logger::init();
     Relays::init();
     HUD::init();
-    Audio::init();
-    AudioQueue::init();
+    Audio::DFPlayer::init();
+    Audio::AudioQueue::init();
 
     Sensors::initCurrent();
     Sensors::initTemperature();
@@ -65,7 +65,7 @@ void setup() {
 
     // --- Logo de arranque ---
     HUD::showLogo();
-    Alerts::play(Alerts::AUDIO_INICIO);
+    Alerts::play(Audio::AUDIO_INICIO);
     delay(2000);
 
     // --- Chequeo rápido ---
@@ -74,10 +74,10 @@ void setup() {
         Steering::center();
         HUD::showReady();
         Relays::enablePower();
-        Alerts::play(Alerts::AUDIO_MODULO_OK);
+        Alerts::play(Audio::AUDIO_MODULO_OK);
     } else {
         HUD::showError();
-        Alerts::play(Alerts::AUDIO_ERROR_GENERAL);
+        Alerts::play(Audio::AUDIO_ERROR_GENERAL);
 
         // Opcional: imprimir detalle de qué falló
         Serial.println("---- SELFTEST FAIL ----");
@@ -111,7 +111,7 @@ void loop() {
     HUD::update();
 
     // Audio
-    AudioQueue::update();
+    Audio::AudioQueue::update();
 
     // Sistema
     System::update();

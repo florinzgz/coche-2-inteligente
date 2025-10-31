@@ -1,6 +1,6 @@
 // src/i2c.cpp
 #include <Wire.h>
-#include "config/addresses.h"
+#include "addresses.h"
 
 // Implementación segura de helper I2C para TCA9548A y acceso básico a INA226.
 // Este módulo no hace suposiciones sobre Wire.begin(); System::init() debe

@@ -2,7 +2,13 @@
 #include "queue.h"
 
 namespace Audio {
-    enum Track : uint16_t; // forward-declaration si Track está definido en otro sitio
+    // Definición de los tracks de audio disponibles
+    enum Track : uint16_t {
+        AUDIO_INICIO = 1,
+        AUDIO_MODULO_OK = 2,
+        AUDIO_ERROR_GENERAL = 3,
+        // Agregar más tracks según sea necesario
+    };
 }
 
 class Alerts {

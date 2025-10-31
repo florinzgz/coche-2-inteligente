@@ -7,6 +7,7 @@ namespace Audio {
         AUDIO_INICIO = 1,
         AUDIO_MODULO_OK = 2,
         AUDIO_ERROR_GENERAL = 3,
+        AUDIO_MENU_OCULTO = 4,
         // Agregar más tracks según sea necesario
     };
 }

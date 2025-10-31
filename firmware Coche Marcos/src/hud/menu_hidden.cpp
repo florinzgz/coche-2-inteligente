@@ -33,10 +33,10 @@ static void applyCalibrationEncoder() {
     Logger::info("Calibración de encoder ejecutada");
 }
 static void applyRegenAdjust(int value) {
-    Logger::info("Ajuste de regen a %d%%", value);
+    Logger::infof("Ajuste de regen a %d%%", value);
 }
 static void applyModules(bool lights, bool media, bool traction) {
-    Logger::info("Módulos ajustados: lights=%d media=%d traction=%d", lights, media, traction);
+    Logger::infof("Módulos ajustados: lights=%d media=%d traction=%d", lights, media, traction);
 }
 static void saveAndExit() {
     Storage::save(cfg);
@@ -46,13 +46,13 @@ static void saveAndExit() {
     lastMenuActive = false;
 }
 static void restoreFactory() {
-    Storage::reset(cfg);
+    Storage::defaults(cfg);
     Logger::info("Configuración restaurada a valores de fábrica.");
     Storage::save(cfg);
 }
 static void showErrors() {
     int count = System::getErrorCount();
-    Logger::info("Errores persistentes: %d", count);
+    Logger::infof("Errores persistentes: %d", count);
 }
 static void clearErrorsMenu() {
     System::clearErrors();
@@ -138,7 +138,7 @@ void MenuHidden::update(bool batteryIconPressed) {
 
             if(codeBuffer == accessCode) {
                 menuActive = true;
-                Audio::Alerts::play({AUDIO_MENU_OCULTO, Audio::Priority::HIGH});
+                Alerts::play({Audio::AUDIO_MENU_OCULTO, Audio::Priority::HIGH});
                 drawMenuFull();
                 lastMenuActive = true;
                 lastSelectedOption = selectedOption;

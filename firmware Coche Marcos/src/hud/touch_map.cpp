@@ -3,15 +3,15 @@
 #include "logger.h"
 
 TouchAction getTouchedZone(int x, int y) {
-    if (x >= BATTERY_X1 && x <= BATTERY_X2 && y >= BATTERY_Y1 && y <= BATTERY_Y2)
+    if (x >= Icons::BATTERY_X1 && x <= Icons::BATTERY_X2 && y >= Icons::BATTERY_Y1 && y <= Icons::BATTERY_Y2)
         return TouchAction::Battery;
-    if (x >= LIGHTS_X1 && x <= LIGHTS_X2 && y >= LIGHTS_Y1 && y <= LIGHTS_Y2)
+    if (x >= Icons::LIGHTS_X1 && x <= Icons::LIGHTS_X2 && y >= Icons::LIGHTS_Y1 && y <= Icons::LIGHTS_Y2)
         return TouchAction::Lights;
-    if (x >= MEDIA_X1 && x <= MEDIA_X2 && y >= MEDIA_Y1 && y <= MEDIA_Y2)
+    if (x >= Icons::MEDIA_X1 && x <= Icons::MEDIA_X2 && y >= Icons::MEDIA_Y1 && y <= Icons::MEDIA_Y2)
         return TouchAction::Multimedia;
-    if (x >= MODE4X4_X1 && x <= MODE4X4_X2 && y >= MODE4X4_Y1 && y <= MODE4X4_Y2)
+    if (x >= Icons::MODE4X4_X1 && x <= Icons::MODE4X4_X2 && y >= Icons::MODE4X4_Y1 && y <= Icons::MODE4X4_Y2)
         return TouchAction::Mode4x4;
-    if (x >= WARNING_X1 && x <= WARNING_X2 && y >= WARNING_Y1 && y <= WARNING_Y2)
+    if (x >= Icons::WARNING_X1 && x <= Icons::WARNING_X2 && y >= Icons::WARNING_Y1 && y <= Icons::WARNING_Y2)
         return TouchAction::Warning;
 
     return TouchAction::None;

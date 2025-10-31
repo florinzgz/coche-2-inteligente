@@ -153,6 +153,9 @@ void MenuHidden::update(bool batteryIconPressed) {
 
     auto btns = Buttons::get();
 
+    // TODO: Implement touch-based menu navigation
+    // For now, menu options can only be changed via touch screen
+    /*
     if(btns.up) {
         if(selectedOption > 1) selectedOption--;
         else selectedOption = 8;
@@ -181,4 +184,5 @@ void MenuHidden::update(bool batteryIconPressed) {
         lastSelectedOption = selectedOption;
         lastCodeBuffer = codeBuffer;
     }
+    */
 }

@@ -5,9 +5,9 @@
 #include "settings.h"
 
 // Núcleo
-#include "core/system.h"
-#include "core/storage.h"
-#include "core/logger.h"
+#include "system.h"
+#include "storage.h"
+#include "logger.h"
 
 // Entradas
 #include "input/pedal.h"

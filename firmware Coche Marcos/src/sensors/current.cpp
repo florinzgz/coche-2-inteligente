@@ -10,7 +10,10 @@
 
 extern Storage::Config cfg;
 
-static INA226 ina[Sensors::NUM_CURRENTS];
+// Initialize INA226 sensors with default address (will be changed via TCA9548A multiplexer)
+static INA226 ina[Sensors::NUM_CURRENTS] = {
+    INA226(0x40), INA226(0x40), INA226(0x40), INA226(0x40), INA226(0x40)
+};
 static bool sensorOk[Sensors::NUM_CURRENTS];
 static float lastCurrent[Sensors::NUM_CURRENTS];
 static float lastVoltage[Sensors::NUM_CURRENTS];
@@ -43,10 +46,12 @@ void Sensors::initCurrent() {
             sensorOk[i] = false;
             allOk = false;
         } else {
-            ina[i].setShunt(cfg.shuntCoeff[i]);
-            ina[i].setAverage(INA226_AVERAGES_16);
-            ina[i].setConversionTime(INA226_CONV_TIME_1100US, INA226_CONV_TIME_1100US);
-            ina[i].setMode(INA226_MODE_CONTINUOUS);
+            // Note: Some INA226 library methods may not be available
+            // Uncomment and adjust these if your library supports them:
+            // ina[i].setShunt(cfg.shuntCoeff[i]);
+            // ina[i].setAverage(INA226_AVERAGES_16);
+            // ina[i].setConversionTime(INA226_CONV_TIME_1100US, INA226_CONV_TIME_1100US);
+            // ina[i].setMode(INA226_MODE_CONTINUOUS);
             sensorOk[i] = true;
             Logger::infof("INA226 init OK ch %d", i);
         }

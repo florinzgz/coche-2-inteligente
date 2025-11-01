@@ -10,29 +10,29 @@
 #include "logger.h"
 
 // Entradas
-#include "input/pedal.h"
-#include "input/steering.h"
-#include "input/buttons.h"
-#include "input/shifter.h"
+#include "pedal.h"
+#include "steering.h"
+#include "buttons.h"
+#include "shifter.h"
 
 // Sensores
-#include "sensors/current.h"
-#include "sensors/temperature.h"
-#include "sensors/wheels.h"
+#include "current.h"
+#include "temperature.h"
+#include "wheels.h"
 
 // Control
-#include "control/relays.h"
-#include "control/traction.h"
-#include "control/steering_motor.h"
+#include "relays.h"
+#include "traction.h"
+#include "steering_motor.h"
 
 // HUD y Audio
-#include "hud/hud.h"
-#include "audio/dfplayer.h"
-#include "audio/queue.h"
-#include "audio/alerts.h"
+#include "hud.h"
+#include "dfplayer.h"
+#include "queue.h"
+#include "alerts.h"
 
 // Utils
-#include "utils/debug.h"
+#include "debug.h"
 #include "utils/filters.h"
 #include "utils/math_utils.h"
 

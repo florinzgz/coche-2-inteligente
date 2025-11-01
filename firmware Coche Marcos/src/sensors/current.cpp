@@ -10,10 +10,9 @@
 
 extern Storage::Config cfg;
 
-// Initialize INA226 sensors with default address (will be changed via TCA9548A multiplexer)
-static INA226 ina[Sensors::NUM_CURRENTS] = {
-    INA226(0x40), INA226(0x40), INA226(0x40), INA226(0x40), INA226(0x40)
-};
+// INA226 sensors - will be initialized in initCurrent()
+// Using pointers to avoid constructor issues with array initialization
+static INA226* ina[Sensors::NUM_CURRENTS] = {nullptr, nullptr, nullptr, nullptr, nullptr};
 static bool sensorOk[Sensors::NUM_CURRENTS];
 static float lastCurrent[Sensors::NUM_CURRENTS];
 static float lastVoltage[Sensors::NUM_CURRENTS];
@@ -39,8 +38,11 @@ void Sensors::initCurrent() {
     bool allOk = true;
 
     for(int i=0; i<NUM_CURRENTS; i++) {
+        // Create INA226 object for this channel
+        ina[i] = new INA226(0x40);  // Address will be selected via TCA9548A multiplexer
+        
         tcaSelect(i);
-        if(!ina[i].begin()) {
+        if(!ina[i]->begin()) {
             Logger::errorf("INA226 init fail ch %d", i);
             System::logError(300+i);   // registrar fallo persistente
             sensorOk[i] = false;
@@ -48,10 +50,10 @@ void Sensors::initCurrent() {
         } else {
             // Note: Some INA226 library methods may not be available
             // Uncomment and adjust these if your library supports them:
-            // ina[i].setShunt(cfg.shuntCoeff[i]);
-            // ina[i].setAverage(INA226_AVERAGES_16);
-            // ina[i].setConversionTime(INA226_CONV_TIME_1100US, INA226_CONV_TIME_1100US);
-            // ina[i].setMode(INA226_MODE_CONTINUOUS);
+            // ina[i]->setShunt(cfg.shuntCoeff[i]);
+            // ina[i]->setAverage(INA226_AVERAGES_16);
+            // ina[i]->setConversionTime(INA226_CONV_TIME_1100US, INA226_CONV_TIME_1100US);
+            // ina[i]->setMode(INA226_MODE_CONTINUOUS);
             sensorOk[i] = true;
             Logger::infof("INA226 init OK ch %d", i);
         }
@@ -85,14 +87,14 @@ void Sensors::updateCurrent() {
     }
 
     for(int i=0; i<NUM_CURRENTS; i++) {
-        if(!sensorOk[i]) continue; // saltar si falló init
+        if(!sensorOk[i] || !ina[i]) continue; // saltar si falló init o no está inicializado
 
         tcaSelect(i);
 
-        float c = ina[i].readCurrent();
-        float v = ina[i].readBusVoltage();
-        float p = ina[i].readPower();
-        float s = ina[i].readShuntVoltage();
+        float c = ina[i]->readCurrent();
+        float v = ina[i]->readBusVoltage();
+        float p = ina[i]->readPower();
+        float s = ina[i]->readShuntVoltage();
 
         // Validación y fallback
         if(!isfinite(c)) { 

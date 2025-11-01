@@ -7,16 +7,14 @@
 static Shifter::State s = {Shifter::P, false};
 
 // Ejemplo: 5 entradas discretas con pull-up (LOW activo)
-static bool readPin(uint8_t pin) { return digitalRead(pin) == LOW; }
+static bool readPin(uint8_t pin) { return digitalRead(pin) == 0; }
 
 static void announce(Shifter::Gear g) {
-    switch(g) {
-        case Shifter::P:  Audio::play(AUDIO_MARCHA_P); break;
-        case Shifter::D2: Audio::play(AUDIO_MARCHA_D2); break;
-        case Shifter::D1: Audio::play(AUDIO_MARCHA_D1); break;
-        case Shifter::N:  Audio::play(AUDIO_MARCHA_N); break;
-        case Shifter::R:  Audio::play(AUDIO_MARCHA_R); break;
-    }
+    // Use generic AUDIO_MODULO_OK for now - specific gear tracks need to be defined
+    (void)g; // Suppress unused warning
+    Alerts::play(Audio::AUDIO_MODULO_OK);
+    // TODO: Add specific gear audio tracks to alerts.h:
+    // AUDIO_MARCHA_P, AUDIO_MARCHA_D2, AUDIO_MARCHA_D1, AUDIO_MARCHA_N, AUDIO_MARCHA_R
 }
 
 void Shifter::init() {

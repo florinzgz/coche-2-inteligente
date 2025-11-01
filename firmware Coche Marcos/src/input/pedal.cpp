@@ -37,13 +37,14 @@ void Pedal::init() {
 }
 
 void Pedal::update() {
-    if(!cfg.pedalEnabled) {
-        // Guard: si está desactivado → neutro
-        s.raw = 0;
-        s.percent = 0.0f;
-        s.valid = false;
-        return;
-    }
+    // Note: pedalEnabled was removed from Config, pedal is always active
+    // if(!cfg.pedalEnabled) {
+    //     // Guard: si está desactivado → neutro
+    //     s.raw = 0;
+    //     s.percent = 0.0f;
+    //     s.valid = false;
+    //     return;
+    // }
 
     int raw = analogRead(PIN_PEDAL);
     s.raw = raw;

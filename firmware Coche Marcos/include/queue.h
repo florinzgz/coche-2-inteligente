@@ -1,19 +1,13 @@
 #pragma once
+
+#ifdef __cplusplus
 #include <stdint.h>
 #include <stddef.h>
-
-// Evitar colisión con macros del core (LOW/HIGH en esp32 hal)
-#ifdef LOW
-#undef LOW
-#endif
-#ifdef HIGH
-#undef HIGH
-#endif
 
 namespace Audio {
 
 // Prioridad de reproducción en la cola
-enum Priority : uint8_t { LOW = 0, NORMAL = 1, HIGH = 2, CRITICAL = 3 };
+enum Priority : uint8_t { PRIO_LOW = 0, PRIO_NORMAL = 1, PRIO_HIGH = 2, PRIO_CRITICAL = 3 };
 
 struct Item {
     uint16_t track;
@@ -46,3 +40,5 @@ private:
 };
 
 } // namespace Audio
+
+#endif // __cplusplus

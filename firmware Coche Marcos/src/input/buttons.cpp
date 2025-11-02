@@ -25,7 +25,7 @@ static bool readPin(uint8_t pin, int idx) {
         System::logError(740);
         return false;
     }
-    bool reading = (digitalRead(pin) == 0);  // 0 = LOW, avoid conflict with Audio::Priority::LOW
+    bool reading = (digitalRead(pin) == 0);  // 0 = LOW, avoid conflict with Audio::Priority::PRIO_LOW
     unsigned long now = millis();
     if(now - lastScan[idx] < debounceMs) {
         return (idx==0?lastLights: idx==1?lastMultimedia: idx==2?last4x4: s.batteryIcon);
@@ -62,17 +62,17 @@ void Buttons::update() {
     if(lights && !lastLights) {
         s.lights = !s.lights;
         evLights = true;
-        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::NORMAL});
+        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::PRIO_NORMAL});
     }
     if(multimedia && !lastMultimedia) {
         s.multimedia = !s.multimedia;
         evMultimedia = true;
-        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::NORMAL});
+        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::PRIO_NORMAL});
     }
     if(mode4x4 && !last4x4) {
         s.mode4x4 = !s.mode4x4;
         ev4x4 = true;
-        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::NORMAL});
+        Alerts::play({Audio::AUDIO_MODULO_OK, Audio::Priority::PRIO_NORMAL});
     }
 
     lastLights = lights;

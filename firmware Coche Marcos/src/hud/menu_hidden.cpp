@@ -138,7 +138,7 @@ void MenuHidden::update(bool batteryIconPressed) {
 
             if(codeBuffer == accessCode) {
                 menuActive = true;
-                Alerts::play({Audio::AUDIO_MENU_OCULTO, Audio::Priority::HIGH});
+                Alerts::play({Audio::AUDIO_MENU_OCULTO, Audio::Priority::PRIO_HIGH});
                 drawMenuFull();
                 lastMenuActive = true;
                 lastSelectedOption = selectedOption;

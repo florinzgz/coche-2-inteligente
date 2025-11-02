@@ -52,7 +52,7 @@ void Alerts::play(Audio::Track t) {
         return;
     }
 
-    Audio::Item it { trackId, Priority::NORMAL };
+    Audio::Item it { trackId, Priority::PRIO_NORMAL };
     if(!AudioQueue::push(it.track, it.prio)) {
         Logger::errorf("Alerts: cola de audio llena");   // ← corregido
         System::logError(722);

@@ -1,6 +1,7 @@
 #include "temperature.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "pins.h"
 #include "logger.h"
 #include "storage.h"
 #include "settings.h"

@@ -33,8 +33,8 @@
 
 // Utils
 #include "debug.h"
-#include "utils/filters.h"
-#include "utils/math_utils.h"
+#include "filters.h"
+#include "math_utils.h"
 
 void setup() {
     Serial.begin(115200);

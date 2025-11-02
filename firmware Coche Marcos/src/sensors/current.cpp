@@ -91,10 +91,10 @@ void Sensors::updateCurrent() {
 
         tcaSelect(i);
 
-        float c = ina[i]->readCurrent();
-        float v = ina[i]->readBusVoltage();
-        float p = ina[i]->readPower();
-        float s = ina[i]->readShuntVoltage();
+        float c = ina[i]->getCurrent();
+        float v = ina[i]->getBusVoltage();
+        float p = ina[i]->getPower();
+        float s = ina[i]->getShuntVoltage();
 
         // Validación y fallback
         if(!isfinite(c)) { 

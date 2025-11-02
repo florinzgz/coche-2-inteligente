@@ -15,7 +15,6 @@ static bool menuActive = false;
 static uint16_t codeBuffer = 0;
 static const uint16_t accessCode = 8989;
 
-static Storage::Config cfg;
 static int selectedOption = 1;   // opción seleccionada (1..8)
 
 // Cache para evitar redibujos innecesarios

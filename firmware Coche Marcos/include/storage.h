@@ -60,4 +60,7 @@ namespace Storage {
 
     // Helpers
     uint32_t computeChecksum(const Config &cfg);
-}
+}  // namespace Storage
+
+// Global config instance
+extern Storage::Config cfg;

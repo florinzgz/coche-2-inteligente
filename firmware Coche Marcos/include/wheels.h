@@ -9,6 +9,9 @@ namespace Sensors {
 
     // 🔎 Nuevo: estado de inicialización global de sensores de rueda
     bool wheelsInitOK();
+    
+    // Verificar si un sensor de rueda específico está OK
+    bool isWheelSensorOk(int wheel);
 
     // Velocidad de rueda en km/h
     // Índices:

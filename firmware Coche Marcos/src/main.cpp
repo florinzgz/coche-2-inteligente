@@ -115,7 +115,7 @@ void loop() {
 
     // Sistema
     System::update();
-    Logger::update();
+    // Logger::update(); // Logger no tiene método update
 
     delay(20); // ~50 Hz
 }

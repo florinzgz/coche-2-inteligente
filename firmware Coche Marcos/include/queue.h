@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
-#include <cstddef>
+#include <stdint.h>
+#include <stddef.h>
 
 // Evitar colisión con macros del core (LOW/HIGH en esp32 hal)
 #ifdef LOW

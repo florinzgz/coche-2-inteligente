@@ -5,6 +5,9 @@
 
 static Preferences prefs;
 
+// Global config variable
+Storage::Config cfg;
+
 static const char *kNamespace = "vehicle";
 static const char *kKeyBlob   = "config";
 

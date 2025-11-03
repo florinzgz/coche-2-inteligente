@@ -84,7 +84,7 @@ namespace WiFiManager {
             Alerts::play(Audio::AUDIO_MODULO_OK);
         } else if (WiFi.status() != WL_CONNECTED && connected) {
             connected = false;
-            Logger::warning("WiFi: Conexión perdida");
+            Logger::warn("WiFi: Conexión perdida");
         }
     }
     

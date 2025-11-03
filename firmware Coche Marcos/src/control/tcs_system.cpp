@@ -77,12 +77,15 @@ void init() {
     state.systemActive = false;
     state.totalActivations = 0;
     state.avgSlipRatio = 0.0f;
+    state.vehicleSpeed = 0.0f;
+    state.lateralG = 0.0f;
     state.efficiencyGain = 0.0f;
     
     for (int i = 0; i < 4; i++) {
         state.wheels[i].active = false;
         state.wheels[i].slipRatio = 0.0f;
         state.wheels[i].powerReduction = 0.0f;
+        state.wheels[i].lastActiveMs = 0;
         state.wheels[i].lastActivationMs = 0;
         state.wheels[i].activationCount = 0;
     }

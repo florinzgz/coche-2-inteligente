@@ -26,6 +26,11 @@
 #include "traction.h"
 #include "steering_motor.h"
 
+// Advanced Safety Systems
+#include "abs_system.h"
+#include "tcs_system.h"
+#include "regen_ai.h"
+
 // HUD y Audio
 #include "hud.h"
 #include "dfplayer.h"
@@ -67,6 +72,11 @@ void setup() {
 
     Traction::init();
     SteeringMotor::init();
+
+    // --- Advanced Safety Systems ---
+    ABSSystem::init();
+    TCSSystem::init();
+    RegenAI::init();
 
     // --- Logo de arranque ---
     HUD::showLogo();
@@ -111,6 +121,11 @@ void loop() {
     SteeringMotor::setDemandAngle(Steering::get().angleDeg);
     SteeringMotor::update();
     Relays::update();
+
+    // Advanced Safety Systems
+    ABSSystem::update();
+    TCSSystem::update();
+    RegenAI::update();
 
     // HUD
     HUD::update();

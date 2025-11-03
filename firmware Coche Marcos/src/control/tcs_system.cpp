@@ -120,7 +120,7 @@ void update() {
     state.vehicleSpeed = vehicleSpeed;
     
     // Get steering angle
-    float steeringAngle = Steering::getAngle();
+    float steeringAngle = Steering::get().angleDeg;
     state.lateralG = estimateLateralG(vehicleSpeed, steeringAngle);
     
     // Check if speed is above minimum threshold

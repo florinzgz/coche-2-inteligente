@@ -8,6 +8,7 @@
 #include "system.h"
 #include "storage.h"
 #include "logger.h"
+#include "wifi_manager.h"
 
 // Entradas
 #include "pedal.h"
@@ -46,6 +47,10 @@ void setup() {
     System::init();
     Storage::init();
     Logger::init();
+    
+    // Initialize WiFi and OTA (before sensors for telemetry)
+    WiFiManager::init();
+    
     Relays::init();
     HUD::init();
     Audio::DFPlayer::init();
@@ -112,6 +117,9 @@ void loop() {
 
     // Audio
     Audio::AudioQueue::update();
+
+    // WiFi and OTA
+    WiFiManager::update();
 
     // Sistema
     System::update();

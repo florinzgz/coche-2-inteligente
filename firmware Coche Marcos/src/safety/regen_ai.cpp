@@ -97,7 +97,7 @@ namespace RegenAI {
             0.0f, 100.0f
         );
         
-        state.currentFeatures.batteryTemp = Sensors::getTemperature();
+        state.currentFeatures.batteryTemp = Sensors::getTemperature(0);
         state.currentFeatures.batteryCurrent = Sensors::getCurrent(0);
         
         // Estimate road slope from acceleration and power

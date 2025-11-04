@@ -148,7 +148,7 @@ namespace ABSSystem {
         
         // Audio feedback on activation/deactivation
         if(state.systemActive && !wasActive) {
-            Alerts::play(Audio::AUDIO_ALERTA_MOTOR);
+            Alerts::play(Audio::AUDIO_ERROR_GENERAL);
         }
         
         lastUpdateMs = now;

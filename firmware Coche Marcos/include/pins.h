@@ -5,6 +5,29 @@
 // pins.h - Asignación de pines para ESP32-S3-DevKitC-1 (44 pines)
 // Compatible con GPIOs 0-48 (adaptado de versión N16R8)
 // ============================================================================
+//
+// HARDWARE COMPLETO INTEGRADO:
+// - ESP32-S3-DevKitC-1 (44 pines, GPIOs 0-48)
+// - 6x INA226 con shunts externos CG FL-2C (1x100A + 5x50A, 75mV, 0.5 Class)
+// - 5x TCA9548A multiplexores I²C (para 6 INA226 sin conflicto dirección)
+// - 1x PCA9685 PWM driver (dirección 0x41, motor dirección RS390)
+// - 1x MCP23017 expansor GPIO I²C (16 pines, control relés)
+// - 2x HY-M158 optoacopladores PC817 (8 canales c/u = 16 total)
+// - 4x BTS7960 drivers motor 43A (tracción 4 ruedas)
+// - 1x BTS7960 driver motor (dirección RS390 12V 6000RPM + reductora 1:50)
+// - 1x Encoder E6B2-CWZ6C 1200PR (dirección, ratio 1:1 al volante)
+// - 5x Sensores inductivos LJ12A3-4-Z/BX (4 ruedas + 1 señal Z encoder)
+// - 1x Sensor Hall A1324LUA-T (pedal analógico)
+// - 1x Pantalla ILI9488 480x320 + táctil XPT2046
+// - 1x DFPlayer Mini (audio)
+// - 1x Tira LEDs WS2812B (iluminación inteligente)
+// - 3x Convertidores nivel I²C bidireccionales 4 canales (5V↔3.3V)
+// - 1x Hub I²C divisor 8 vías
+// - Relés: 1x módulo 2 canales 5V SRD-05VDC, 1x SPDT 100A 24V, 
+//          1x TAXNELE TN606 RL280-12 (12V 100-200A), 
+//          1x Contactor HCH8s-25z 25A 2NO DC12,
+//          1x Automotive Waterproof Relay 100A 12V SPDT
+// ============================================================================
 
 // -----------------------
 // Relés de potencia
@@ -75,11 +98,29 @@
 #define PIN_ONEWIRE       26
 
 // -----------------------
-// I2C (INA226 + PCA9685)
+// I2C (INA226 + PCA9685 + MCP23017 + TCA9548A)
 // Remapeado para ESP32-S3-DevKitC-1
 // -----------------------
 #define PIN_I2C_SDA       21
 #define PIN_I2C_SCL       20  // Cambiado de 22
+
+// Direcciones I²C del sistema:
+// 0x40 - INA226 (6 unidades multiplexadas vía TCA9548A)
+// 0x41 - PCA9685 (PWM motor dirección, cambiado de 0x40 para evitar conflicto)
+// 0x20 - MCP23017 (expansor GPIO 16 pines para control relés)
+// 0x70 - TCA9548A multiplexor I²C #1 (canales 0-7)
+// 0x71 - TCA9548A multiplexor I²C #2 (si se usa)
+// 0x72 - TCA9548A multiplexor I²C #3 (si se usa)
+// 0x73 - TCA9548A multiplexor I²C #4 (si se usa)
+// 0x74 - TCA9548A multiplexor I²C #5 (si se usa)
+//
+// Asignación INA226 en TCA9548A (0x70):
+// Canal 0: INA226 Motor FL (Frontal Izquierda) - Shunt 50A 75mV
+// Canal 1: INA226 Motor FR (Frontal Derecha) - Shunt 50A 75mV
+// Canal 2: INA226 Motor RL (Trasera Izquierda) - Shunt 50A 75mV
+// Canal 3: INA226 Motor RR (Trasera Derecha) - Shunt 50A 75mV
+// Canal 4: INA226 Batería 24V - Shunt 100A 75mV (CG FL-2C)
+// Canal 5: INA226 Motor Dirección RS390 12V - Shunt 50A 75mV
 
 // -----------------------
 // BTS7960 – Motores de rueda (PWM + IN1/IN2)

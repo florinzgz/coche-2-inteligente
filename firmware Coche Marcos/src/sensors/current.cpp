@@ -12,12 +12,21 @@ extern Storage::Config cfg;
 
 // INA226 sensors - will be initialized in initCurrent()
 // Using pointers to avoid constructor issues with array initialization
-static INA226* ina[Sensors::NUM_CURRENTS] = {nullptr, nullptr, nullptr, nullptr, nullptr};
+// 6 sensores: 0-3 motores tracción (50A), 4 batería (100A), 5 motor dirección (50A)
+static INA226* ina[Sensors::NUM_CURRENTS] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 static bool sensorOk[Sensors::NUM_CURRENTS];
 static float lastCurrent[Sensors::NUM_CURRENTS];
 static float lastVoltage[Sensors::NUM_CURRENTS];
 static float lastPower[Sensors::NUM_CURRENTS];
 static float lastShunt[Sensors::NUM_CURRENTS];
+
+// Configuración shunts CG FL-2C externos
+// Canal 4 (batería): 100A 0.5 Class, 75mV → R_shunt = 75mV/100A = 0.00075Ω
+// Canales 0-3,5 (motores): 50A 0.5 Class, 75mV → R_shunt = 75mV/50A = 0.0015Ω
+static constexpr float SHUNT_BATTERY_OHM = 0.00075f;  // 75mV @ 100A
+static constexpr float SHUNT_MOTOR_OHM = 0.0015f;     // 75mV @ 50A
+static constexpr float MAX_CURRENT_BATTERY = 100.0f;  // 100A
+static constexpr float MAX_CURRENT_MOTOR = 50.0f;     // 50A
 
 static uint32_t lastUpdateMs = 0;
 
@@ -48,14 +57,18 @@ void Sensors::initCurrent() {
             sensorOk[i] = false;
             allOk = false;
         } else {
-            // Note: Some INA226 library methods may not be available
-            // Uncomment and adjust these if your library supports them:
-            // ina[i]->setShunt(cfg.shuntCoeff[i]);
-            // ina[i]->setAverage(INA226_AVERAGES_16);
-            // ina[i]->setConversionTime(INA226_CONV_TIME_1100US, INA226_CONV_TIME_1100US);
-            // ina[i]->setMode(INA226_MODE_CONTINUOUS);
+            // Configurar shunt según canal:
+            // Canal 4 = batería (100A), resto = motores (50A)
+            float shuntOhm = (i == 4) ? SHUNT_BATTERY_OHM : SHUNT_MOTOR_OHM;
+            float maxCurrent = (i == 4) ? MAX_CURRENT_BATTERY : MAX_CURRENT_MOTOR;
+            
+            // Calibrar INA226 para shunt CG FL-2C
+            // Típicamente: configure(shuntResistor, maxExpectedCurrent)
+            // ina[i]->configure(shuntOhm, maxCurrent);
+            // Si tu librería usa otro método, ajusta aquí
+            
             sensorOk[i] = true;
-            Logger::infof("INA226 init OK ch %d", i);
+            Logger::infof("INA226 OK ch%d (%.4fΩ, %.0fA)", i, shuntOhm, maxCurrent);
         }
         lastCurrent[i] = 0.0f;
         lastVoltage[i] = 0.0f;

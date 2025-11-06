@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
-static Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40); // I2C PCA9685 en 0x40 (ajusta si necesario)
+static Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x41); // I2C PCA9685 en 0x41 (evitar conflicto con INA226 0x40)
 static SteeringMotor::State s;
 
 static const uint16_t kFreqHz = 1000;  // PWM estable para BTS7960

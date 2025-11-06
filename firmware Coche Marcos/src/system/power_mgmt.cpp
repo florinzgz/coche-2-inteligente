@@ -98,10 +98,14 @@ void init() {
     
     // CRÍTICO: Activar power hold inmediatamente para mantener buck activo
     activateRelay(PIN_RELAY_POWER_HOLD);
+    
+    // CRÍTICO: Activar 12V auxiliares ANTES de buscar centro de volante
+    // El motor de dirección RS390 12V necesita alimentación para funcionar
+    activateRelay(PIN_RELAY_AUX_12V);
     currentState = PowerState::POWER_HOLD;
     
     Logger::log(Logger::Priority::INFO, "PowerMgmt", 
-                "Inicializado - Power Hold activo, esperando centrado volante");
+                "Inicializado - Power Hold y 12V Auxiliares activos, esperando centrado volante");
 }
 
 void update() {
@@ -122,9 +126,9 @@ void update() {
             
         case PowerState::POWER_HOLD:
             // Esperando notificación de volante centrado
+            // Nota: 12V auxiliares ya está activo desde init() para permitir búsqueda de centro
             if (steeringCentered) {
-                Logger::log(Logger::Priority::INFO, "PowerMgmt", "Volante centrado - Activando 12V auxiliares");
-                enableAuxPower();
+                Logger::log(Logger::Priority::INFO, "PowerMgmt", "Volante centrado - Verificando sensores ruedas");
                 currentState = PowerState::AUX_POWER;
             }
             break;

@@ -16,9 +16,9 @@
  * SECUENCIA ARRANQUE:
  * 1. Llave ON → Buck 5V enciende → ESP32 boot
  * 2. ESP32 activa Relé 1 (power hold) inmediatamente
- * 3. Busca centro volante con sensor inductivo (prioridad)
- * 4. Activa Relé 2 (12V auxiliares) tras centrar volante
- * 5. Verifica sensores ruedas → Activa Relé 3 (24V motores)
+ * 3. ESP32 activa Relé 2 (12V auxiliares) para alimentar motor dirección
+ * 4. Busca centro volante con motor dirección RS390 12V (requiere 12V activo)
+ * 5. Verifica sensores ruedas → Activa Relé 3 (24V motores tracción)
  * 
  * SECUENCIA APAGADO:
  * 1. Detecta llave OFF (GPIO 45 pull-up a GND)
@@ -64,7 +64,9 @@ void update();
 /**
  * @brief Activa relé de 12V auxiliares (sensores/encoder)
  * 
- * Solo se activa tras confirmar volante centrado.
+ * Nota: Este relé se activa automáticamente en init() para permitir
+ * que el motor de dirección funcione durante la búsqueda de centro.
+ * Esta función está disponible por si se necesita reactivar manualmente.
  */
 void enableAuxPower();
 
@@ -122,7 +124,9 @@ bool isFullPowerOn();
  * @brief Notifica que volante está centrado
  * 
  * Llamar desde código de inicialización tras confirmar
- * que sensor inductivo del volante detectó el punto cero.
+ * que el motor de dirección encontró el punto cero.
+ * Nota: El motor dirección requiere 12V auxiliares activo,
+ * el cual se habilita automáticamente en init().
  */
 void notifySteeringCentered();
 

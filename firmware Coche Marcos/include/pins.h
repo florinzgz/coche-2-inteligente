@@ -163,8 +163,7 @@ static inline bool pin_is_assigned(uint8_t gpio) {
     case PIN_RELAY_MAIN:
     case PIN_RELAY_TRAC:
     case PIN_RELAY_DIR:
-    case PIN_RELAY_LIGHTS:
-    case PIN_RELAY_MEDIA:
+    case PIN_RELAY_SPARE:
     case PIN_PEDAL:
     case PIN_ENCODER_A:
     case PIN_ENCODER_B:

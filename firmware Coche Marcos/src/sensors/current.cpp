@@ -5,6 +5,7 @@
 #include "storage.h"
 #include "settings.h"
 #include "system.h"   // para logError()
+#include "i2c_recovery.h"  // Sistema de recuperación I²C
 
 #define TCA_ADDR 0x70   // Dirección I2C del TCA9548A
 
@@ -33,12 +34,15 @@ static uint32_t lastUpdateMs = 0;
 // Flag de inicialización global
 static bool initialized = false;
 
-// Selecciona canal del TCA9548A
+// Selecciona canal del TCA9548A con recuperación automática
 static void tcaSelect(uint8_t channel) {
     if(channel > 7) return;
-    Wire.beginTransmission(TCA_ADDR);
-    Wire.write(1 << channel);
-    Wire.endTransmission();
+    
+    // Usar tcaSelectSafe en lugar de Wire directo
+    if (!I2CRecovery::tcaSelectSafe(channel, TCA_ADDR)) {
+        Logger::errorf("TCA select fail ch %d - recovery attempt", channel);
+        I2CRecovery::recoverBus();  // Intentar recuperar bus
+    }
 }
 
 void Sensors::initCurrent() {
@@ -52,10 +56,18 @@ void Sensors::initCurrent() {
         
         tcaSelect(i);
         if(!ina[i]->begin()) {
-            Logger::errorf("INA226 init fail ch %d", i);
-            System::logError(300+i);   // registrar fallo persistente
-            sensorOk[i] = false;
-            allOk = false;
+            Logger::errorf("INA226 init fail ch %d - retrying with recovery", i);
+            
+            // Intentar recuperación progresiva
+            bool recovered = I2CRecovery::reinitSensor(i, 0x40, i);
+            if (recovered && ina[i]->begin()) {
+                Logger::infof("INA226 ch %d recovered!", i);
+                sensorOk[i] = true;
+            } else {
+                System::logError(300+i);   // registrar fallo persistente
+                sensorOk[i] = false;
+                allOk = false;
+            }
         } else {
             // Configurar shunt según canal:
             // Canal 4 = batería (100A), resto = motores (50A)
@@ -100,7 +112,30 @@ void Sensors::updateCurrent() {
     }
 
     for(int i=0; i<NUM_CURRENTS; i++) {
-        if(!sensorOk[i] || !ina[i]) continue; // saltar si falló init o no está inicializado
+        // Check device state before reading
+        I2CRecovery::DeviceState state = I2CRecovery::checkDeviceState(i);
+        
+        if (state == I2CRecovery::DeviceState::OFFLINE) {
+            // Sensor marcado offline, saltar
+            sensorOk[i] = false;
+            lastCurrent[i] = 0.0f;
+            lastVoltage[i] = 0.0f;
+            lastPower[i]   = 0.0f;
+            lastShunt[i]   = 0.0f;
+            continue;
+        }
+        
+        if(!sensorOk[i] || !ina[i]) {
+            // Intentar recuperación si está en backoff
+            if (state == I2CRecovery::DeviceState::BACKOFF) {
+                Logger::infof("INA226 ch %d attempting recovery from backoff", i);
+                if (I2CRecovery::reinitSensor(i, 0x40, i) && ina[i]->begin()) {
+                    sensorOk[i] = true;
+                    Logger::infof("INA226 ch %d recovered!", i);
+                }
+            }
+            continue; // Saltar si aún no está ok
+        }
 
         tcaSelect(i);
 
@@ -109,26 +144,38 @@ void Sensors::updateCurrent() {
         float p = ina[i]->getPower();
         float s = ina[i]->getShuntVoltage();
 
-        // Validación y fallback
+        // Validación y fallback con recuperación
+        bool hasError = false;
         if(!isfinite(c)) { 
             c = 0.0f; 
             System::logError(310+i); 
             Logger::errorf("INA226 ch %d: corriente inválida", i);
+            hasError = true;
         }
         if(!isfinite(v)) { 
             v = 0.0f; 
             System::logError(320+i); 
             Logger::errorf("INA226 ch %d: voltaje inválido", i);
+            hasError = true;
         }
         if(!isfinite(p)) { 
             p = 0.0f; 
             System::logError(330+i); 
             Logger::errorf("INA226 ch %d: potencia inválida", i);
+            hasError = true;
         }
         if(!isfinite(s)) { 
             s = 0.0f; 
             System::logError(340+i); 
             Logger::errorf("INA226 ch %d: shunt inválido", i);
+            hasError = true;
+        }
+        
+        // Si hubo errores, notificar al recovery system
+        if (hasError) {
+            I2CRecovery::handleDeviceFailure(i);
+            sensorOk[i] = false;
+            continue;
         }
 
         // Clamps

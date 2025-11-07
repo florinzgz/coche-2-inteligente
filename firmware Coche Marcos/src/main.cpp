@@ -9,6 +9,8 @@
 #include "storage.h"
 #include "logger.h"
 #include "wifi_manager.h"
+#include "watchdog.h"
+#include "i2c_recovery.h"
 
 // Entradas
 #include "pedal.h"
@@ -52,6 +54,10 @@ void setup() {
     System::init();
     Storage::init();
     Logger::init();
+    
+    // CRITICAL: Initialize Watchdog and I²C Recovery FIRST
+    Watchdog::init();
+    I2CRecovery::init();
     
     // Initialize WiFi and OTA (before sensors for telemetry)
     WiFiManager::init();
@@ -104,6 +110,9 @@ void setup() {
 }
 
 void loop() {
+    // CRITICAL: Feed watchdog at start of every loop iteration
+    Watchdog::feed();
+    
     // Entradas
     Pedal::update();
     Steering::update();

@@ -192,23 +192,46 @@ GND                      GND
 
 ## 6️⃣ SENSORES INA226 (Corriente/Voltaje I²C)
 
-### 📊 4 Sensores en Bus I²C
+### 📊 6 Sensores Multiplexados vía TCA9548A
 
-| Sensor | Dirección I²C | Medición |
-|--------|---------------|----------|
-| INA226 #1 | 0x40 | Motor FL |
-| INA226 #2 | 0x41 | Motor FR |
-| INA226 #3 | 0x44 | Motor RL |
-| INA226 #4 | 0x45 | Motor RR |
+**Configuración:** Todos los INA226 usan dirección 0x40, multiplexados por TCA9548A (0x70)
 
-### 🔌 Conexiones I²C (todos en paralelo)
+| Sensor | Dir I²C | Canal TCA9548A | Medición | Shunt |
+|--------|---------|----------------|----------|-------|
+| INA226 #1 | 0x40 | Canal 0 | Motor FL | 50A (75mV) |
+| INA226 #2 | 0x40 | Canal 1 | Motor FR | 50A (75mV) |
+| INA226 #3 | 0x40 | Canal 2 | Motor RL | 50A (75mV) |
+| INA226 #4 | 0x40 | Canal 3 | Motor RR | 50A (75mV) |
+| INA226 #5 | 0x40 | Canal 4 | Batería | 100A (75mV) |
+| INA226 #6 | 0x40 | Canal 5 | Motor Dirección | 50A (75mV) |
+| TCA9548A | 0x70 | - | Multiplexor I²C | - |
+| PCA9685 | 0x41 | Bus principal | Motor Dirección PWM | - |
 
-| Pin INA226 | ESP32-S3 Pin | Función |
-|------------|--------------|---------|
+**⚠️ Arquitectura:** Los 6 INA226 comparten dirección 0x40 pero están en canales separados
+del TCA9548A, eliminando conflictos. PCA9685 (0x41) está en el bus I²C principal.
+
+### 🔌 Conexiones I²C
+
+**TCA9548A → ESP32-S3:**
+| Pin TCA9548A | ESP32-S3 Pin | Función |
+|--------------|--------------|---------|
 | VCC | **3.3V** | Alimentación |
 | GND | **GND** | Tierra |
-| SDA | **GPIO 21** | Datos I²C (todos en paralelo) |
-| SCL | **GPIO 20** | Reloj I²C (todos en paralelo) |
+| SDA | **GPIO 21** | Datos I²C |
+| SCL | **GPIO 20** | Reloj I²C |
+| A0-A2 | **GND** | Dirección 0x70 |
+
+**Cada INA226 #X → Canal X del TCA9548A:**
+| Pin INA226 | TCA9548A | Función |
+|------------|----------|---------|
+| VCC | 3.3V | Alimentación |
+| GND | GND | Tierra |
+| SDA | Canal SDA | Datos (canal individual) |
+| SCL | Canal SCL | Reloj (canal individual) |
+| VIN+ | Línea+ | Positivo medido |
+| VIN- | Shunt- | Negativo shunt |
+
+**Shunt → Carga:** Shunt+ conecta a motor/batería
 
 **✅ NO necesitan convertidor de nivel** (nativos 3.3V)
 
@@ -359,7 +382,7 @@ SD Card/
 - [ ] **HY-M158 #2** (GPIO 2) conectado a sistema general 12V
 - [ ] **Convertidores de nivel** instalados entre sensores 5V y ESP32
 - [ ] **Pantalla ILI9488** cables soldados correctamente (GPIO 11, 18, 19)
-- [ ] **4 sensores INA226** en bus I²C (GPIO 20, 21) con direcciones únicas
+- [ ] **6 sensores INA226** multiplexados vía TCA9548A (dirección 0x70) en bus I²C (GPIO 20, 21)
 - [ ] **Encoder E6B2-CWZ6C** conectado a GPIO 37, 38 con Z en GPIO 25
 - [ ] **4 sensores LJ12A3** en GPIO 30, 31, 35, 36
 - [ ] **4 BTS7960** con PWM y direcciones correctas
@@ -380,11 +403,15 @@ SD Card/
 **Repositorio GitHub:**
 ```
 https://github.com/florinzgz/coche-2-inteligente
-Rama: copilot/revise-and-fix-functionality
-Commit: 36c74b8
+Rama principal: main
 ```
 
 **Descarga directa ZIP:**
+```
+https://github.com/florinzgz/coche-2-inteligente/archive/refs/heads/main.zip
+```
+
+**Última versión de desarrollo:**
 ```
 https://github.com/florinzgz/coche-2-inteligente/archive/refs/heads/copilot/revise-and-fix-functionality.zip
 ```

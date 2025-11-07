@@ -224,7 +224,7 @@
 📁 SD Card (FAT32)
 └── 📁 mp3/
     ├── 0001.mp3  "Bienvenido Marcos"
-    ├── 0002.mp3  "Hasta pronto"
+    ├── 0002.mp3  "Hasta luego"
     ├── 0003.mp3  "Cambio a marcha D1"
     ├── 0004.mp3  "Cambio a marcha D2"
     ├── 0005.mp3  "Cambio a reversa"
@@ -339,12 +339,22 @@
 
 ### Direcciones I2C
 
-| **Sensor** | **Dirección I2C** | **Función** | **Voltaje Medido** |
-|------------|-------------------|-------------|--------------------|
-| INA226 #1 | 0x40 | Batería Principal | 24V tracción |
-| INA226 #2 | 0x41 | Sistema 12V | Auxiliar 12V |
-| INA226 #3 | 0x44 | Motor FL (Front Left) | 24V motor |
-| INA226 #4 | 0x45 | Motor FR (Front Right) | 24V motor |
+| **Dispositivo** | **Dirección I2C** | **Canal TCA9548A** | **Función** |
+|-----------------|-------------------|--------------------|-------------|
+| INA226 #1 | 0x40 | Canal 0 | Motor FL (Front Left) - 50A |
+| INA226 #2 | 0x40 | Canal 1 | Motor FR (Front Right) - 50A |
+| INA226 #3 | 0x40 | Canal 2 | Motor RL (Rear Left) - 50A |
+| INA226 #4 | 0x40 | Canal 3 | Motor RR (Rear Right) - 50A |
+| INA226 #5 | 0x40 | Canal 4 | Batería Principal - 100A |
+| INA226 #6 | 0x40 | Canal 5 | Motor Dirección RS390 - 50A |
+| PCA9685 | 0x41 | Bus principal | Motor Dirección (PWM) |
+| TCA9548A | 0x70 | - | Multiplexor I²C |
+
+**Arquitectura Bus I²C:**
+- Todos los INA226 usan la misma dirección (0x40) en canales separados del TCA9548A
+- Sin conflictos de dirección gracias al multiplexado
+- PCA9685 conectado directamente al bus I²C principal (no multiplexado)
+- Canales 6-7 del TCA9548A libres para expansión futura
 
 ### Diagrama Bus I2C
 ```

@@ -74,7 +74,10 @@ firmware Coche Marcos/
 - **Ancho de vía**: 0.70 m
 - **Ángulo máximo de dirección**: 54°
 - **Circunferencia de rueda**: 1100 mm
-- **Velocidad máxima teórica**: ~26 km/h (calculada según RPM y reductora)
+- **Velocidad máxima teórica**: ~26 km/h
+  - Cálculo: RPM motor (15000) / Reductora (75) = 200 RPM rueda
+  - 200 RPM × 1.1m circunferencia × 60 = 13200 m/h = ~22 km/h (motores RS775)
+  - Con margen de seguridad y eficiencia del sistema: ~26 km/h máximo
 
 ## Requisitos de Desarrollo
 

@@ -34,7 +34,9 @@
 | 33 | PIN_RELAY_MEDIA | ❌ NO EXISTE |
 | 34 | PIN_PEDAL | ❌ NO EXISTE |
 
-**GPIOs válidos disponibles:** 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,35,36,37,38,39,40,41,42,43,44,45,46,47,48
+**GPIOs válidos disponibles:** 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,35,36,37,38,39,40,41,42,43,44,45,46,47,48
+
+**Nota:** GPIOs 22-23 están disponibles y se usan correctamente en el sistema de relés.
 
 ### 3. **INCONSISTENCIAS EN DEFINICIONES**
 
@@ -116,9 +118,20 @@
 | SCL | 20 |
 
 **Dispositivos I²C:**
-- ✅ 6x INA226 (dirección 0x40, multiplexados vía TCA9548A 0x70)
-- ✅ 1x PCA9685 (dirección 0x41, motor dirección)
-- ✅ 1x TCA9548A (dirección 0x70, multiplexor)
+- ✅ 6x INA226 (dirección 0x40 en cada canal, multiplexados vía TCA9548A 0x70)
+  - Canal 0: Motor FL (Front Left) - 50A shunt
+  - Canal 1: Motor FR (Front Right) - 50A shunt
+  - Canal 2: Motor RL (Rear Left) - 50A shunt
+  - Canal 3: Motor RR (Rear Right) - 50A shunt
+  - Canal 4: Batería Principal - 100A shunt
+  - Canal 5: Motor Dirección RS390 - 50A shunt
+- ✅ 1x PCA9685 (dirección 0x41, motor dirección PWM, conectado directo al bus I²C)
+- ✅ 1x TCA9548A (dirección 0x70, multiplexor I²C con 8 canales)
+
+**Arquitectura I²C:**
+Todos los INA226 comparten la misma dirección (0x40) pero están en canales separados del 
+TCA9548A, eliminando completamente cualquier conflicto de direcciones. El PCA9685 está 
+conectado directamente al bus I²C principal sin multiplexar.
 
 ### Motores BTS7960 (4 ruedas)
 **Estado:** ⚠️ **MOTOR RR NECESITA CORRECCIÓN**

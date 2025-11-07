@@ -6,7 +6,8 @@
 
 static Shifter::State s = {Shifter::P, false};
 
-// Ejemplo: 5 entradas discretas con pull-up (LOW activo)
+// Shifter conectado vía HY-M158 optoacopladores (señales 12V aisladas)
+// Lee entrada digital con pull-up (LOW = activo)
 static bool readPin(uint8_t pin) { return digitalRead(pin) == 0; }
 
 static void announce(Shifter::Gear g) {
@@ -18,23 +19,24 @@ static void announce(Shifter::Gear g) {
 }
 
 void Shifter::init() {
-    // Define pines reales en pins.h (aquí ejemplos)
-    pinMode(PIN_TFT_CS, INPUT_PULLUP);  // P
-    pinMode(PIN_TFT_DC, INPUT_PULLUP);  // D2
-    pinMode(PIN_TFT_RST, INPUT_PULLUP); // D1
-    pinMode(PIN_DFPLAYER_RX, INPUT_PULLUP); // N
-    pinMode(PIN_DFPLAYER_TX, INPUT_PULLUP); // R
-    Logger::info("Shifter init");
+    // Pines shifter conectados vía HY-M158 optoacopladores (12V → 3.3V)
+    pinMode(PIN_SHIFTER_P, INPUT_PULLUP);   // P (Park)
+    pinMode(PIN_SHIFTER_D2, INPUT_PULLUP);  // D2 (Drive 2)
+    pinMode(PIN_SHIFTER_D1, INPUT_PULLUP);  // D1 (Drive 1)
+    pinMode(PIN_SHIFTER_N, INPUT_PULLUP);   // N (Neutral)
+    pinMode(PIN_SHIFTER_R, INPUT_PULLUP);   // R (Reverse)
+    Logger::info("Shifter init (via HY-M158)");
 }
 
 void Shifter::update() {
     Shifter::Gear newGear = s.gear;
 
-    if(readPin(PIN_TFT_CS))       newGear = Shifter::P;
-    else if(readPin(PIN_TFT_DC))  newGear = Shifter::D2;
-    else if(readPin(PIN_TFT_RST)) newGear = Shifter::D1;
-    else if(readPin(PIN_DFPLAYER_RX)) newGear = Shifter::N;
-    else if(readPin(PIN_DFPLAYER_TX)) newGear = Shifter::R;
+    // Lee cada posición del shifter (prioridad P > D2 > D1 > N > R)
+    if(readPin(PIN_SHIFTER_P))       newGear = Shifter::P;
+    else if(readPin(PIN_SHIFTER_D2)) newGear = Shifter::D2;
+    else if(readPin(PIN_SHIFTER_D1)) newGear = Shifter::D1;
+    else if(readPin(PIN_SHIFTER_N))  newGear = Shifter::N;
+    else if(readPin(PIN_SHIFTER_R))  newGear = Shifter::R;
 
     if(newGear != s.gear) {
         s.gear = newGear;

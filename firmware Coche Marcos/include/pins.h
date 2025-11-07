@@ -46,10 +46,11 @@
 // -----------------------
 // Encoder dirección
 // Remapeado para ESP32-S3-DevKitC-1
+// Conectado vía HY-M158 optoacopladores para aislamiento
 // -----------------------
 #define PIN_ENCODER_A     37  // Canal A (cambiado de 44)
 #define PIN_ENCODER_B     38  // Canal B (cambiado de 45)
-#define PIN_ENCODER_Z     25  // Señal Z (centrado)
+#define PIN_ENCODER_Z     46  // Señal Z (centrado) - CORREGIDO: GPIO 25 no existe en placa 44 pines
 
 // -----------------------
 // DFPlayer Mini (UART1)
@@ -77,20 +78,32 @@
 // -----------------------
 // Botones físicos
 // Remapeados para ESP32-S3-DevKitC-1
+// Multimedia pasa por HY-M158 (12V), 4x4 directo (3.3V compatible)
 // -----------------------
 #define PIN_BTN_LIGHTS    40  // Botón luces (cambiado de 35)
-#define PIN_BTN_MEDIA     41  // Botón media (cambiado de 36)
-#define PIN_BTN_4X4       42  // Botón 4x4 (cambiado de 39)
-#define PIN_BTN_BATTERY   46  // Botón batería
+#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158, 12V) - Cambiado a GPIO 39
+#define PIN_BTN_4X4       42  // Botón 4x4 directo a ESP32 (3.3V compatible)
+#define PIN_BTN_BATTERY   45  // Botón batería - Cambiado a GPIO 45 (46 usado por encoder Z)
+
+// -----------------------
+// Palanca de cambios (Shifter) - 5 posiciones
+// Conectada vía HY-M158 optoacopladores (señales 12V)
+// -----------------------
+#define PIN_SHIFTER_P     13  // Posición P (Park)
+#define PIN_SHIFTER_D2    14  // Posición D2 (Drive 2)
+#define PIN_SHIFTER_D1    15  // Posición D1 (Drive 1)
+#define PIN_SHIFTER_N     16  // Posición N (Neutral)
+#define PIN_SHIFTER_R     17  // Posición R (Reverse)
 
 // -----------------------
 // Sensores de rueda (entradas digitales/inductivas LJ12A3-4-Z/BX)
+// Conectados vía HY-M158 optoacopladores (5V)
 // Remapeados para ESP32-S3-DevKitC-1
 // -----------------------
 #define PIN_WHEEL0        35  // FL (Frontal Izquierda)
 #define PIN_WHEEL1        36  // FR (Frontal Derecha)
-#define PIN_WHEEL2        30  // RL (Trasera Izquierda)
-#define PIN_WHEEL3        31  // RR (Trasera Derecha)
+#define PIN_WHEEL2        41  // RL (Trasera Izquierda) - Cambiado de 30
+#define PIN_WHEEL3        40  // RR (Trasera Derecha) - Cambiado de 31
 
 // -----------------------
 // DS18B20 (OneWire)
@@ -156,6 +169,11 @@ static inline bool pin_is_assigned(uint8_t gpio) {
     case PIN_ENCODER_A:
     case PIN_ENCODER_B:
     case PIN_ENCODER_Z:
+    case PIN_SHIFTER_P:
+    case PIN_SHIFTER_D2:
+    case PIN_SHIFTER_D1:
+    case PIN_SHIFTER_N:
+    case PIN_SHIFTER_R:
     case PIN_DFPLAYER_RX:
     case PIN_DFPLAYER_TX:
     case PIN_TFT_CS:
@@ -170,6 +188,10 @@ static inline bool pin_is_assigned(uint8_t gpio) {
     case PIN_BTN_MEDIA:
     case PIN_BTN_4X4:
     case PIN_BTN_BATTERY:
+    case PIN_WHEEL0:
+    case PIN_WHEEL1:
+    case PIN_WHEEL2:
+    case PIN_WHEEL3:
     case PIN_ONEWIRE:
     case PIN_I2C_SDA:
     case PIN_I2C_SCL:

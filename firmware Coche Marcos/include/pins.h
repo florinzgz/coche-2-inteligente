@@ -80,10 +80,10 @@
 // Remapeados para ESP32-S3-DevKitC-1
 // Multimedia pasa por HY-M158 (12V), 4x4 directo (3.3V compatible)
 // -----------------------
-#define PIN_BTN_LIGHTS    40  // Botón luces (cambiado de 35)
-#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158, 12V) - Cambiado a GPIO 39
+#define PIN_BTN_LIGHTS    45  // Botón luces - Cambiado a GPIO 45 (evita conflicto con WHEEL3)
+#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158, 12V) - GPIO 39
 #define PIN_BTN_4X4       42  // Botón 4x4 directo a ESP32 (3.3V compatible)
-#define PIN_BTN_BATTERY   45  // Botón batería - Cambiado a GPIO 45 (46 usado por encoder Z)
+#define PIN_BTN_BATTERY   21  // Botón batería - Cambiado a GPIO 21 (libre)
 
 // -----------------------
 // Palanca de cambios (Shifter) - 5 posiciones
@@ -100,15 +100,15 @@
 // Conectados vía HY-M158 optoacopladores (5V)
 // Remapeados para ESP32-S3-DevKitC-1
 // -----------------------
-#define PIN_WHEEL0        35  // FL (Frontal Izquierda)
-#define PIN_WHEEL1        36  // FR (Frontal Derecha)
-#define PIN_WHEEL2        41  // RL (Trasera Izquierda) - Cambiado de 30
-#define PIN_WHEEL3        40  // RR (Trasera Derecha) - Cambiado de 31
+#define PIN_WHEEL0        35  // FL (Frontal Izquierda) vía HY-M158
+#define PIN_WHEEL1        36  // FR (Frontal Derecha) vía HY-M158
+#define PIN_WHEEL2        41  // RL (Trasera Izquierda) vía HY-M158
+#define PIN_WHEEL3        40  // RR (Trasera Derecha) vía HY-M158
 
 // -----------------------
-// DS18B20 (OneWire)
+// DS18B20 (OneWire) - Sensor temperatura
 // -----------------------
-#define PIN_ONEWIRE       26
+#define PIN_ONEWIRE       19  // GPIO 19 (válido en ESP32-S3 44 pines)
 
 // -----------------------
 // I2C (INA226 + PCA9685 + MCP23017 + TCA9548A)
@@ -151,9 +151,9 @@
 #define PIN_RL_IN1        47  // Trasera Izquierda IN1
 #define PIN_RL_IN2        48  // Trasera Izquierda IN2
 
-#define PIN_RR_PWM        24  // Trasera Derecha PWM
-#define PIN_RR_IN1        28  // Trasera Derecha IN1
-#define PIN_RR_IN2        29  // Trasera Derecha IN2
+#define PIN_RR_PWM        18  // Trasera Derecha PWM (cambiado de 24, GPIO inválido)
+#define PIN_RR_IN1        11  // Trasera Derecha IN1 (cambiado de 28, GPIO inválido)
+#define PIN_RR_IN2        12  // Trasera Derecha IN2 (cambiado de 29, GPIO inválido)
 
 // -----------------------
 // Helpers

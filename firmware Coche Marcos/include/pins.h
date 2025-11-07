@@ -30,18 +30,19 @@
 // ============================================================================
 
 // -----------------------
-// Relés de potencia
+// Relés de potencia (4 relés SRD-05VDC-SL-C)
+// GPIOs verificados para ESP32-S3-DevKitC-1 44 pines
 // -----------------------
-#define PIN_RELAY_MAIN    2
-#define PIN_RELAY_TRAC    4
-#define PIN_RELAY_DIR     5
-#define PIN_RELAY_LIGHTS  32
-#define PIN_RELAY_MEDIA   33
+#define PIN_RELAY_MAIN    2   // Relé 1: Power Hold
+#define PIN_RELAY_TRAC    4   // Relé 2: 12V Auxiliares  
+#define PIN_RELAY_DIR     5   // Relé 3: 24V Motores Tracción
+#define PIN_RELAY_SPARE   6   // Relé 4: Reserva (consolidado desde LIGHTS/MEDIA)
 
 // -----------------------
-// Pedal (ADC)
+// Pedal acelerador - Sensor Hall A1324LUA-T (analógico, 5V output)
+// GPIO 3 tiene ADC disponible, requiere divisor tensión 5V→3.3V o HY-M158
 // -----------------------
-#define PIN_PEDAL         34
+#define PIN_PEDAL         3   // GPIO 3 (ADC1_CH2) - Compatible con ADC
 
 // -----------------------
 // Encoder dirección
@@ -60,30 +61,31 @@
 
 // -----------------------
 // Pantalla TFT ILI9488 (SPI)
-// Remapeado para ESP32-S3-DevKitC-1
+// Remapeado para ESP32-S3-DevKitC-1 44 pines
 // -----------------------
-#define PIN_TFT_CS        15
-#define PIN_TFT_DC        27
-#define PIN_TFT_RST       14
-#define PIN_TFT_MOSI      11  // SPI MOSI (cambiado de 23)
-#define PIN_TFT_MISO      19
-#define PIN_TFT_SCK       18
+#define PIN_TFT_CS        15  // Chip Select
+#define PIN_TFT_DC        23  // Data/Command (GPIO 27 no existe, cambiado a 23)
+#define PIN_TFT_RST       10  // Reset (evita conflicto con GPIO 23)
+#define PIN_TFT_MOSI      11  // SPI MOSI
+#define PIN_TFT_MISO      19  // SPI MISO
+#define PIN_TFT_SCK       18  // SPI Clock
 
 // -----------------------
 // Táctil (XPT2046 SPI)
 // -----------------------
-#define PIN_TOUCH_CS      12   // Chip Select táctil
-#define PIN_TOUCH_IRQ     13   // Interrupción táctil (opcional)
+#define PIN_TOUCH_CS      22   // Chip Select táctil (cambiado de 12 para evitar conflicto con RR_IN2)
+#define PIN_TOUCH_IRQ     14   // Interrupción táctil (cambiado de 13, opcional)
 
 // -----------------------
 // Botones físicos
-// Remapeados para ESP32-S3-DevKitC-1
-// Multimedia pasa por HY-M158 (12V), 4x4 directo (3.3V compatible)
+// Remapeados para ESP32-S3-DevKitC-1 44 pines
+// Multimedia (12V) vía HY-M158 Módulo #1 CH8
+// 4x4/4x2 (12V) vía HY-M158 Módulo #2 CH6 - Switch 2 posiciones con pull-up
 // -----------------------
-#define PIN_BTN_LIGHTS    45  // Botón luces - Cambiado a GPIO 45 (evita conflicto con WHEEL3)
-#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158, 12V) - GPIO 39
-#define PIN_BTN_4X4       42  // Botón 4x4 directo a ESP32 (3.3V compatible)
-#define PIN_BTN_BATTERY   21  // Botón batería - Cambiado a GPIO 21 (libre)
+#define PIN_BTN_LIGHTS    45  // Botón luces
+#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158 12V) 
+#define PIN_BTN_4X4       42  // Botón 4x4/4x2 (vía HY-M158 12V, 2 posiciones, pull-up)
+#define PIN_BTN_BATTERY   21  // Botón batería
 
 // -----------------------
 // Palanca de cambios (Shifter) - 5 posiciones
@@ -137,23 +139,23 @@
 
 // -----------------------
 // BTS7960 – Motores de rueda (PWM + IN1/IN2)
-// Remapeado para ESP32-S3-DevKitC-1 (GPIOs 0-48)
+// Remapeado para ESP32-S3-DevKitC-1 44 pines (GPIOs 0-21, 35-48)
 // -----------------------
 #define PIN_FL_PWM        1   // Frontal Izquierda PWM
-#define PIN_FL_IN1        3   // Frontal Izquierda IN1
-#define PIN_FL_IN2        6   // Frontal Izquierda IN2
+#define PIN_FL_IN1        8   // Frontal Izquierda IN1 (cambiado de 3, ahora usado por PEDAL)
+#define PIN_FL_IN2        9   // Frontal Izquierda IN2 (cambiado de 6, ahora usado por RELAY_SPARE)
 
 #define PIN_FR_PWM        7   // Frontal Derecha PWM
-#define PIN_FR_IN1        8   // Frontal Derecha IN1
-#define PIN_FR_IN2        9   // Frontal Derecha IN2
+#define PIN_FR_IN1        6   // Frontal Derecha IN1 (antes era FL_IN2)
+#define PIN_FR_IN2        48  // Frontal Derecha IN2 (cambiado de 9)
 
 #define PIN_RL_PWM        10  // Trasera Izquierda PWM
 #define PIN_RL_IN1        47  // Trasera Izquierda IN1
-#define PIN_RL_IN2        48  // Trasera Izquierda IN2
+#define PIN_RL_IN2        41  // Trasera Izquierda IN2 (cambiado de 48)
 
-#define PIN_RR_PWM        18  // Trasera Derecha PWM (cambiado de 24, GPIO inválido)
-#define PIN_RR_IN1        11  // Trasera Derecha IN1 (cambiado de 28, GPIO inválido)
-#define PIN_RR_IN2        12  // Trasera Derecha IN2 (cambiado de 29, GPIO inválido)
+#define PIN_RR_PWM        18  // Trasera Derecha PWM
+#define PIN_RR_IN1        11  // Trasera Derecha IN1
+#define PIN_RR_IN2        12  // Trasera Derecha IN2
 
 // -----------------------
 // Helpers

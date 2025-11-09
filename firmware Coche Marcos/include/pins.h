@@ -56,25 +56,25 @@
 // -----------------------
 // DFPlayer Mini (UART1)
 // -----------------------
-#define PIN_DFPLAYER_RX   16
-#define PIN_DFPLAYER_TX   17
+#define PIN_DFPLAYER_RX   43  // GPIO 43 (cambio para evitar conflicto)
+#define PIN_DFPLAYER_TX   44  // GPIO 44 (cambio para evitar conflicto)
 
 // -----------------------
 // Pantalla TFT ILI9488 (SPI)
 // Remapeado para ESP32-S3-DevKitC-1 44 pines
 // -----------------------
-#define PIN_TFT_CS        15  // Chip Select
-#define PIN_TFT_DC        23  // Data/Command (GPIO 27 no existe, cambiado a 23)
-#define PIN_TFT_RST       10  // Reset (evita conflicto con GPIO 23)
+#define PIN_TFT_CS        8   // Chip Select (corregido de 7, conflicto con FR_PWM)
+#define PIN_TFT_DC        33  // Data/Command (cambio para evitar conflicto)
+#define PIN_TFT_RST       34  // Reset (cambio para evitar conflicto)
 #define PIN_TFT_MOSI      11  // SPI MOSI
-#define PIN_TFT_MISO      19  // SPI MISO
-#define PIN_TFT_SCK       18  // SPI Clock
+#define PIN_TFT_MISO      13  // SPI MISO (corregido de 12, conflicto con RR_IN2)
+#define PIN_TFT_SCK       14  // SPI Clock (corregido de 13)
 
 // -----------------------
 // Táctil (XPT2046 SPI)
 // -----------------------
-#define PIN_TOUCH_CS      22   // Chip Select táctil (cambiado de 12 para evitar conflicto con RR_IN2)
-#define PIN_TOUCH_IRQ     14   // Interrupción táctil (cambiado de 13, opcional)
+#define PIN_TOUCH_CS      17   // Chip Select táctil (corregido de 14)
+#define PIN_TOUCH_IRQ     21   // Interrupción táctil (corregido de 15)
 
 // -----------------------
 // Botones físicos
@@ -85,17 +85,17 @@
 #define PIN_BTN_LIGHTS    45  // Botón luces
 #define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158 12V) 
 #define PIN_BTN_4X4       42  // Botón 4x4/4x2 (vía HY-M158 12V, 2 posiciones, pull-up)
-#define PIN_BTN_BATTERY   21  // Botón batería
+#define PIN_BTN_BATTERY   16  // Botón batería (cambio para evitar conflicto con I2C_SDA)
 
 // -----------------------
 // Palanca de cambios (Shifter) - 5 posiciones
 // Conectada vía HY-M158 optoacopladores (señales 12V)
 // -----------------------
-#define PIN_SHIFTER_P     13  // Posición P (Park)
-#define PIN_SHIFTER_D2    14  // Posición D2 (Drive 2)
-#define PIN_SHIFTER_D1    15  // Posición D1 (Drive 1)
-#define PIN_SHIFTER_N     16  // Posición N (Neutral)
-#define PIN_SHIFTER_R     17  // Posición R (Reverse)
+#define PIN_SHIFTER_P     47  // Posición P (Park) (cambio para evitar conflictos)
+#define PIN_SHIFTER_D2    48  // Posición D2 (Drive 2) (cambio para evitar conflictos)
+#define PIN_SHIFTER_D1    17  // Posición D1 (Drive 1) (cambio para evitar conflictos)
+#define PIN_SHIFTER_N     18  // Posición N (Neutral) (cambio para evitar conflictos)
+#define PIN_SHIFTER_R     19  // Posición R (Reverse) (cambio para evitar conflictos)
 
 // -----------------------
 // Sensores de rueda (entradas digitales/inductivas LJ12A3-4-Z/BX)
@@ -110,14 +110,14 @@
 // -----------------------
 // DS18B20 (OneWire) - Sensor temperatura
 // -----------------------
-#define PIN_ONEWIRE       19  // GPIO 19 (válido en ESP32-S3 44 pines)
+#define PIN_ONEWIRE       1  // GPIO 1 (corregido de 19, conflicto con SHIFTER_R)
 
 // -----------------------
 // I2C (INA226 + PCA9685 + MCP23017 + TCA9548A)
 // Remapeado para ESP32-S3-DevKitC-1
 // -----------------------
-#define PIN_I2C_SDA       21
-#define PIN_I2C_SCL       20  // Cambiado de 22
+#define PIN_I2C_SDA       9  // GPIO 9 (corregido de 21)
+#define PIN_I2C_SCL       20  // GPIO 20 (sin cambios)
 
 // Direcciones I²C del sistema:
 // 0x40 - INA226 (6 unidades multiplexadas vía TCA9548A)
@@ -141,19 +141,19 @@
 // BTS7960 – Motores de rueda (PWM + IN1/IN2)
 // Remapeado para ESP32-S3-DevKitC-1 44 pines (GPIOs 0-21, 35-48)
 // -----------------------
-#define PIN_FL_PWM        1   // Frontal Izquierda PWM
-#define PIN_FL_IN1        8   // Frontal Izquierda IN1 (cambiado de 3, ahora usado por PEDAL)
-#define PIN_FL_IN2        9   // Frontal Izquierda IN2 (cambiado de 6, ahora usado por RELAY_SPARE)
+#define PIN_FL_PWM        35   // Frontal Izquierda PWM (antes 1, conflicto con ONEWIRE)
+#define PIN_FL_IN1        36   // Frontal Izquierda IN1
+#define PIN_FL_IN2        37   // Frontal Izquierda IN2
 
 #define PIN_FR_PWM        7   // Frontal Derecha PWM
-#define PIN_FR_IN1        6   // Frontal Derecha IN1 (antes era FL_IN2)
-#define PIN_FR_IN2        48  // Frontal Derecha IN2 (cambiado de 9)
+#define PIN_FR_IN1        6   // Frontal Derecha IN1
+#define PIN_FR_IN2        48  // Frontal Derecha IN2
 
 #define PIN_RL_PWM        10  // Trasera Izquierda PWM
 #define PIN_RL_IN1        47  // Trasera Izquierda IN1
-#define PIN_RL_IN2        41  // Trasera Izquierda IN2 (cambiado de 48)
+#define PIN_RL_IN2        41  // Trasera Izquierda IN2
 
-#define PIN_RR_PWM        18  // Trasera Derecha PWM
+#define PIN_RR_PWM        0   // Trasera Derecha PWM (antes 18, conflicto con SHIFTER_N)
 #define PIN_RR_IN1        11  // Trasera Derecha IN1
 #define PIN_RR_IN2        12  // Trasera Derecha IN2
 

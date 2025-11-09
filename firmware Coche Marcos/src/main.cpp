@@ -11,6 +11,7 @@
 #include "wifi_manager.h"
 #include "watchdog.h"
 #include "i2c_recovery.h"
+#include "bluetooth_controller.h"
 
 // Entradas
 #include "pedal.h"
@@ -83,6 +84,9 @@ void setup() {
     ABSSystem::init();
     TCSSystem::init();
     RegenAI::init();
+    
+    // --- Bluetooth Emergency Override Controller ---
+    BluetoothController::init();
 
     // --- Logo de arranque ---
     HUD::showLogo();
@@ -112,6 +116,9 @@ void setup() {
 void loop() {
     // CRITICAL: Feed watchdog at start of every loop iteration
     Watchdog::feed();
+    
+    // PRIORITY 1: Bluetooth Emergency Override (HIGHEST PRIORITY)
+    BluetoothController::update();
     
     // Entradas
     Pedal::update();

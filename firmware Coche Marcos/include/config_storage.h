@@ -38,6 +38,10 @@ namespace ConfigStorage {
         bool regen_enabled;
         bool wifi_enabled;
         
+        // Bluetooth controller
+        char bt_mac_address[18];    // MAC address of paired controller (XX:XX:XX:XX:XX:XX)
+        bool bt_auto_reconnect;     // Auto-reconnect on power up
+        
         // Checksum for validation
         uint32_t checksum;
     };
@@ -72,6 +76,10 @@ namespace ConfigStorage {
         .tcs_enabled = true,
         .regen_enabled = true,
         .wifi_enabled = true,
+        
+        // Bluetooth defaults
+        .bt_mac_address = "",      // Empty until paired
+        .bt_auto_reconnect = true,
         
         .checksum = 0
     };

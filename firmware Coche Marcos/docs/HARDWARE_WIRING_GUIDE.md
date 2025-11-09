@@ -1,5 +1,8 @@
-# 📟 MANUAL COMPLETO DE CONEXIONES HARDWARE
-## Sistema de Control Coche Eléctrico - ESP32-S3-DevKitC-1
+# 🔌 GUÍA COMPLETA DE CONEXIONES HARDWARE - ESP32-S3 Electric Car Control System
+
+**Sistema de Control Eléctrico Completo para ESP32-S3-DevKitC-1 (44 pines)**
+
+Esta guía detalla todas las conexiones físicas necesarias para implementar el sistema de control completo del coche eléctrico.
 
 ---
 
@@ -7,792 +10,1023 @@
 
 1. [ESP32-S3-DevKitC-1 Pinout](#1-esp32-s3-devkitc-1-pinout)
 2. [Módulo 4 Relés SRD-05VDC-SL-C](#2-módulo-4-relés-srd-05vdc-sl-c)
-3. [6x Sensores Corriente INA226 + Multiplexor I²C](#3-6x-sensores-corriente-ina226--multiplexor-i²c)
+3. [Sensores de Corriente INA226 + Multiplexor I²C](#3-sensores-de-corriente-ina226--multiplexor-i²c)
 4. [Encoder Volante E6B2-CWZ6C](#4-encoder-volante-e6b2-cwz6c)
 5. [LEDs WS2812B](#5-leds-ws2812b)
-6. [5x Sensores Ruedas LJ12A3-4-Z/BX](#6-5x-sensores-ruedas-lj12a3-4-zbx)
-7. [Motor Dirección RS390 + Driver BTS7960](#7-motor-dirección-rs390--driver-bts7960)
-8. [4x Motores Tracción + Drivers BTS7960](#8-4x-motores-tracción--drivers-bts7960)
+6. [Sensores de Rueda LJ12A3-4-Z/BX](#6-sensores-de-rueda-lj12a3-4-z-bx)
+7. [Motor Dirección RS390 + BTS7960](#7-motor-dirección-rs390--bts7960)
+8. [Motores Tracción + BTS7960](#8-motores-tracción--bts7960)
 9. [Pantalla ILI9488 + Táctil XPT2046](#9-pantalla-ili9488--táctil-xpt2046)
 10. [DFPlayer Mini](#10-dfplayer-mini)
 11. [Pedal Acelerador Hall A1324LUA-T](#11-pedal-acelerador-hall-a1324lua-t)
-12. [2x Optoacopladores HY-M158](#12-2x-optoacopladores-hy-m158)
-13. [Troubleshooting](#13-troubleshooting)
+12. [Optoacopladores HY-M158](#12-optoacopladores-hy-m158)
+13. [Diagrama de Potencia General](#13-diagrama-de-potencia-general)
+14. [Troubleshooting](#14-troubleshooting)
 
 ---
 
 ## 1. ESP32-S3-DevKitC-1 PINOUT
 
-### 🔌 Especificaciones
-- **Modelo:** ESP32-S3-DevKitC-1 (44 pines)
-- **GPIOs disponibles:** 0-21, 35-48
-- **Voltaje:** 3.3V
-- **I²C:** SDA=GPIO21, SCL=GPIO22 (por defecto)
-- **SPI:** MOSI=GPIO23, MISO=GPIO19, SCK=GPIO18
-- **Bluetooth Classic:** Integrado (sin GPIO adicional)
+### Rango de GPIOs Válidos
+- **GPIOs digitales**: 0-21, 35-48
+- **GPIOs analógicos (ADC)**: 1-10
+- **NO usar**: 22-34 (reservados/no disponibles en ESP32-S3)
 
-### 📊 Mapa Completo de Pines Utilizados
+### Asignación de Pines Completa
 
 ```
-ESP32-S3 DevKitC-1 (44 pines)
-┌─────────────────────────────────────┐
-│                                     │
-│  3V3  ●                         ● GND
-│  EN   ●                         ● GPIO43  (DFPlayer TX)
-│  GPIO36 ●                       ● GPIO44  (DFPlayer RX)
-│  GPIO37 ● (Encoder A)           ● GPIO1
-│  GPIO38 ● (Encoder B)           ● GPIO2   (Relé 1 - Power Hold)
-│  GPIO39 ●                       ● GPIO42
-│  GPIO40 ● (Wheel Sensor RL)    ● GPIO41  (Wheel Sensor FR)
-│  GPIO41 ●                       ● GPIO40
-│  GPIO42 ●                       ● GPIO39
-│  GPIO4  ● (Relé 2 - 12V Aux)   ● GPIO38
-│  GPIO5  ● (Relé 3 - 24V Trac)  ● GPIO37
-│  GPIO6  ● (Relé 4 - Spare)     ● GPIO36
-│  GPIO7  ●                       ● GPIO35  (Wheel Sensor FL)
-│  GPIO15 ●                       ● GPIO0
-│  GPIO16 ●                       ● GPIO45
-│  GPIO17 ●                       ● GPIO48
-│  GPIO18 ● (SPI SCK)            ● GPIO47
-│  GPIO8  ● (LED Data)           ● GPIO21  (I2C SDA)
-│  GPIO3  ● (Pedal ADC)          ● GPIO20
-│  GPIO46 ● (Encoder Z)          ● GPIO19  (SPI MISO)
-│  GPIO9  ●                       ● GPIO22  (I2C SCL)
-│  GPIO10 ●                       ● GPIO23  (SPI MOSI)
-│  GPIO11 ●                       ● GND
-│  GPIO12 ●                       ● 3V3
-│  GPIO13 ● (Shifter P)          ● GPIO14  (Shifter N)
-│  5V     ●                       ● GPIO15  (Shifter D1)
-│  GND    ●                       ● GPIO16  (Shifter D2)
-│                                     │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│      ESP32-S3-DevKitC-1 (44 pines)      │
+├─────────────────────────────────────────┤
+│                                         │
+│  3.3V ──┐                    ┌── 5V    │
+│  GND ───┤                    ├── GND   │
+│  EN ────┤                    ├── GPIO21│
+│  GPIO36 ┤ (Encoder A)        ├── GPIO19│
+│  GPIO37 ┤ (Encoder B)        ├── GPIO20│
+│  GPIO38 ┤ (Encoder Z)        ├── GPIO18│
+│  GPIO39 ┤                    ├── GPIO17 (Shifter bit 4)
+│  GPIO40 ┤ (Wheel RR)         ├── GPIO16 (Shifter bit 3)
+│  GPIO41 ┤ (Wheel RL)         ├── GPIO15 (Shifter bit 2)
+│  GPIO42 ┤                    ├── GPIO14 (Shifter bit 1)
+│  GPIO1  ┤                    ├── GPIO13 (Shifter bit 0)
+│  GPIO2  ┤ (Relay 1)          ├── GPIO12│
+│  GPIO3  ┤ (Pedal ADC)        ├── GPIO11│
+│  GPIO4  ┤ (Relay 2)          ├── GPIO10│
+│  GPIO5  ┤ (Relay 3)          ├── GPIO9 (I2C SDA)
+│  GPIO6  ┤ (Relay 4)          ├── GPIO8 (I2C SCL)
+│  GPIO7  ┤                    ├── GPIO46│
+│  GPIO35 ┤ (Wheel FL)         ├── GPIO45│
+│  GPIO0  ┤ (Boot)             ├── GPIO48│
+│  GND ───┤                    ├── GPIO47│
+│  GPIO43 ┤ (DF TX)            ├── GPIO44 (DF RX)
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
 ## 2. MÓDULO 4 RELÉS SRD-05VDC-SL-C
 
-### 🔌 Conexiones Relés de Arranque
+### ⚡ Configuración CRÍTICA: VCC vs JD-VCC
 
-**⚠️ IMPORTANTE:** Alimentación separada para mejor aislamiento
-
-```
-┌──────────────────────────────────────────────┐
-│        MÓDULO 4 RELÉS (LOW TRIGGER)          │
-├──────────────────────────────────────────────┤
-│  VCC   ──────── 3.3V (ESP32)                 │
-│  GND   ──────── GND (común)                  │
-│  IN1   ──────── GPIO 2  (Relé 1)             │
-│  IN2   ──────── GPIO 4  (Relé 2)             │
-│  IN3   ──────── GPIO 5  (Relé 3)             │
-│  IN4   ──────── GPIO 6  (Relé 4)             │
-│                                              │
-│  JD-VCC ─────── 5V (buck separado)          │
-│  GND    ─────── GND (común)                  │
-│                                              │
-│  QUITAR JUMPER VCC-JD-VCC                    │
-└──────────────────────────────────────────────┘
-```
-
-### 📋 Tabla de Conexiones
-
-| Pin ESP32 | Pin Relé | Función | Activa en |
-|-----------|----------|---------|-----------|
-| GPIO 2 | IN1 | Power Hold | LOW (0V) |
-| GPIO 4 | IN2 | 12V Auxiliares | LOW (0V) |
-| GPIO 5 | IN3 | 24V Tracción | LOW (0V) |
-| GPIO 6 | IN4 | Spare/Reserva | LOW (0V) |
-| 3.3V | VCC | Lógica | - |
-| 5V | JD-VCC | Bobinas | - |
-| GND | GND | Común | - |
-
-### 🔧 Configuración Jumper
-- **QUITAR jumper VCC-JD-VCC** para aislamiento
-- **LOW level trigger** (relé activa con GPIO=0V)
-
-### ⚡ Conexiones a Relés de Potencia
+**IMPORTANTE:** Quitar el jumper entre VCC y JD-VCC para aislamiento correcto.
 
 ```
-Relé 1 (Power Hold):
-  NO ──→ Buck 12V→5V enable
-  
-Relé 2 (12V Auxiliares):
-  NO ──→ Relé potencia 12V
-         ├─→ Motor dirección RS390
-         ├─→ Sensores ruedas (12V)
-         └─→ Shifter (vía optoacoplador)
-
-Relé 3 (24V Tracción):
-  NO ──→ Relé potencia 24V
-         └─→ 4x motores tracción RS775
-
-Relé 4 (Spare):
-  NO ──→ Reserva para expansiones
+┌─────────────────────────────────────────────┐
+│          Módulo 4 Relés                     │
+├─────────────────────────────────────────────┤
+│                                             │
+│  [Relay 1] [Relay 2] [Relay 3] [Relay 4]  │
+│     NO         NO         NO         NO     │
+│     COM        COM        COM        COM    │
+│     NC         NC         NC         NC     │
+│                                             │
+│  ┌────────────────────────────────────┐    │
+│  │ VCC  IN1  IN2  IN3  IN4  JD-VCC   │    │
+│  │ GND                        GND     │    │
+│  └────────────────────────────────────┘    │
+│         ▲                         ▲         │
+│         │                         │         │
+│         │ NO JUMPER AQUÍ         │        │
+│         └─────────X───────────────┘         │
+│                                             │
+└─────────────────────────────────────────────┘
 ```
+
+### Conexiones
+
+| ESP32 Pin | Relé Pin | Función | Voltaje |
+|-----------|----------|---------|---------|
+| GPIO 2 | IN1 | Relay 1 - Power Hold | 3.3V (señal) |
+| GPIO 4 | IN2 | Relay 2 - 12V Aux | 3.3V (señal) |
+| GPIO 5 | IN3 | Relay 3 - 24V Traction | 3.3V (señal) |
+| GPIO 6 | IN4 | Relay 4 - Spare | 3.3V (señal) |
+| 3.3V | VCC | Lógica del módulo | 3.3V |
+| 5V Buck | JD-VCC | Bobinas relés | 5V |
+| GND | GND (ambos) | Tierra común | 0V |
+
+### Conexión de Relés a Carga
+
+```
+Power Supply                Relé               Load
+┌──────┐                   ┌────┐            ┌──────┐
+│ 12V  ├───────────────────┤ COM├────────────┤ 12V  │
+│ Buck │                   │    │            │ Load │
+└──────┘                   │ NO │  ┌─────────┤ GND  │
+                           └────┘  │         └──────┘
+                            ▲      │
+                            │      │
+                       Activado ───┘
+                       (GPIO LOW)
+```
+
+### Configuración del Firmware
+
+```cpp
+// Modo LOW trigger (relé activa con GPIO = LOW)
+pinMode(PIN_RELAY_1, OUTPUT);
+digitalWrite(PIN_RELAY_1, HIGH); // Relé OFF (safe state)
+
+// Para activar relé:
+digitalWrite(PIN_RELAY_1, LOW);  // Relé ON
+```
+
+### ⚠️ IMPORTANTE: Secuencia de Arranque
+
+**Orden correcto:**
+1. Relay 1 (Power Hold) - Primero (delay 100-5000ms)
+2. Relay 2 (12V Aux) - Segundo (delay 100-3000ms)
+3. Relay 3 (24V Traction) - Último (delay 500-5000ms)
 
 ---
 
-## 3. 6x SENSORES CORRIENTE INA226 + MULTIPLEXOR I²C
+## 3. SENSORES DE CORRIENTE INA226 + MULTIPLEXOR I²C
 
-### 🔌 Multiplexor TCA9548A
+### Configuración TCA9548A (Multiplexor I²C)
 
 ```
 ┌─────────────────────────────────────────┐
-│      TCA9548A I2C Multiplexor           │
-│      (Dirección: 0x70)                  │
+│        TCA9548A I²C Multiplexer         │
+│         (Dirección: 0x70)               │
 ├─────────────────────────────────────────┤
-│  VCC  ──────── 3.3V                     │
-│  GND  ──────── GND                      │
-│  SDA  ──────── GPIO 21 (ESP32)          │
-│  SCL  ──────── GPIO 22 (ESP32)          │
 │                                         │
-│  SD0  ──────── INA226 #1 (Motor FL)     │
-│  SC0  ──────── INA226 #1 (Motor FL)     │
+│  SDA ←───── GPIO 9 (ESP32)             │
+│  SCL ←───── GPIO 8 (ESP32)             │
+│  VCC ←───── 3.3V                       │
+│  GND ←───── GND                        │
+│  A0/A1/A2 ← GND (dirección 0x70)      │
 │                                         │
-│  SD1  ──────── INA226 #2 (Motor FR)     │
-│  SC1  ──────── INA226 #2 (Motor FR)     │
+│  ┌──────────────────────────────┐     │
+│  │  SD0/SC0 → INA226 #0 (FL)   │     │
+│  │  SD1/SC1 → INA226 #1 (FR)   │     │
+│  │  SD2/SC2 → INA226 #2 (RL)   │     │
+│  │  SD3/SC3 → INA226 #3 (RR)   │     │
+│  │  SD4/SC4 → INA226 #4 (Batt) │     │
+│  │  SD5/SC5 → INA226 #5 (Steer)│     │
+│  └──────────────────────────────┘     │
 │                                         │
-│  SD2  ──────── INA226 #3 (Motor RL)     │
-│  SC2  ──────── INA226 #3 (Motor RL)     │
-│                                         │
-│  SD3  ──────── INA226 #4 (Motor RR)     │
-│  SC3  ──────── INA226 #4 (Motor RR)     │
-│                                         │
-│  SD4  ──────── INA226 #5 (Battery)      │
-│  SC4  ──────── INA226 #5 (Battery)      │
-│                                         │
-│  SD5  ──────── INA226 #6 (Steering)     │
-│  SC5  ──────── INA226 #6 (Steering)     │
 └─────────────────────────────────────────┘
 ```
 
-### 📋 Configuración INA226
-
-| Sensor | Canal TCA | Medición | Rango |
-|--------|-----------|----------|-------|
-| INA226 #1 | 0 | Motor FL | 0-50A |
-| INA226 #2 | 1 | Motor FR | 0-50A |
-| INA226 #3 | 2 | Motor RL | 0-50A |
-| INA226 #4 | 3 | Motor RR | 0-50A |
-| INA226 #5 | 4 | Battery | 0-100A |
-| INA226 #6 | 5 | Steering | 0-20A |
-
-### 🔧 Conexión Típica INA226
+### Conexión de Cada INA226
 
 ```
-INA226 (cada sensor):
-  VCC  ──→ 3.3V
-  GND  ──→ GND
-  SDA  ──→ SDx (canal TCA9548A)
-  SCL  ──→ SCx (canal TCA9548A)
-  
-  VIN+ ──→ Positivo motor/batería
-  VIN- ──→ Negativo motor/batería (antes de shunt)
-  
-  Shunt: 0.01Ω entre VIN- y GND
+       ┌──────────────┐
+Motor  │   INA226     │  ESP32
++24V ──┤ VIN+    VCC  ├── 3.3V
+  │    │             │
+  │    │ Shunt       │
+  └────┤ Resistor    │
+Motor  │ VIN-    SDA  ├── Canal TCA9548A
+GND ───┤        SCL  ├── Canal TCA9548A
+       │        GND  ├── GND
+       └──────────────┘
+```
+
+**IMPORTANTE: Resistencias Shunt Requeridas**
+
+Cada INA226 necesita una resistencia shunt en serie con la línea de corriente:
+
+| Sensor | Canal TCA | Monitoriza | Rango | Shunt Resistor | Potencia Shunt |
+|--------|-----------|-----------|-------|----------------|----------------|
+| INA226 #0 | 0 | Motor FL | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #1 | 1 | Motor FR | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #2 | 2 | Motor RL | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #3 | 3 | Motor RR | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #4 | 4 | Battery Main | 0-100A | 1mΩ (0.001Ω) | 10W mínimo |
+| INA226 #5 | 5 | Steering Motor | 0-20A | 5mΩ (0.005Ω) | 2W mínimo |
+
+### Diagrama de Montaje Shunt
+
+```
+Motor Positivo (+24V)
+      │
+      ├───────► A INA226 VIN+
+      │
+   ┌──┴──┐
+   │     │ Shunt Resistor (ej: 2mΩ, 5W)
+   │     │ (resistencia muy baja, alta potencia)
+   └──┬──┘
+      │
+      ├───────► A INA226 VIN-
+      │
+   Motor (-) / GND
+```
+
+### Cálculo Shunt Resistor
+
+**Fórmula:** R_shunt = V_max / I_max
+
+Donde:
+- V_max = 81.92mV (máximo voltaje INA226)
+- I_max = Corriente máxima esperada
+
+**Ejemplo para motor 50A:**
+- R_shunt = 0.08192V / 50A = 1.6mΩ
+- Usar: 2mΩ (valor comercial cercano)
+- Potencia: P = I² × R = 50² × 0.002 = 5W
+- **Usar shunt de 5W mínimo, recomendado 10W**
+
+### ⚠️ CRÍTICO: Especificaciones Shunt
+
+1. **Tolerancia:** ±1% o mejor
+2. **Tipo:** Resistencia de potencia de bajo valor
+3. **Montaje:** Con disipador térmico si >3W
+4. **Ejemplo de compra:** 
+   - "2mΩ 10W Shunt Resistor"
+   - FL-2 (2mΩ) common shunt
+   - Manganina o aleación baja temperatura
+
+### Configuración INA226 en Firmware
+
+```cpp
+// Configurar INA226 con shunt de 2mΩ
+#define SHUNT_RESISTOR 0.002  // 2mΩ
+#define MAX_CURRENT 50.0      // 50A
+
+ina226.begin();
+ina226.configure(INA226_AVERAGES_16, 
+                 INA226_BUS_CONV_TIME_1100US,
+                 INA226_SHUNT_CONV_TIME_1100US,
+                 INA226_MODE_SHUNT_BUS_CONT);
+ina226.calibrate(SHUNT_RESISTOR, MAX_CURRENT);
+```
+
+### Conexión I²C al ESP32
+
+| ESP32 Pin | Función | Señal |
+|-----------|---------|-------|
+| GPIO 9 | I2C SDA | Datos bidireccional |
+| GPIO 8 | I2C SCL | Clock |
+
+### ⚠️ IMPORTANTE: Resistencias Pull-up
+
+```
+        3.3V
+         │
+        ┌┴┐ 4.7kΩ
+        │ │
+        └┬┘
+         ├─────── SDA (GPIO 9)
+         │
+        ┌┴┐ 4.7kΩ
+        │ │
+        └┬┘
+         └─────── SCL (GPIO 8)
 ```
 
 ---
 
 ## 4. ENCODER VOLANTE E6B2-CWZ6C
 
-### 🔌 Conexiones Encoder
+### Especificaciones
+- Tipo: Incremental rotativo
+- Resolución: 1200 pulsos/revolución
+- Alimentación: 5-24V DC
+- Salidas: A, B, Z (NPN open collector)
+
+### Conexión
 
 ```
-┌────────────────────────────────────┐
-│    Encoder E6B2-CWZ6C              │
-│    (1200 pulsos/revolución)        │
-├────────────────────────────────────┤
-│  VCC (Marrón)  ──→ 12V             │
-│  GND (Azul)    ──→ GND             │
-│  A   (Negro)   ──→ GPIO 37 (ESP32) │
-│  B   (Blanco)  ──→ GPIO 38 (ESP32) │
-│  Z   (Naranja) ──→ GPIO 46 (ESP32) │
-└────────────────────────────────────┘
+┌────────────────────────────┐
+│   E6B2-CWZ6C Encoder       │
+├────────────────────────────┤
+│                            │
+│  Cable Marrón   → +12V     │
+│  Cable Azul     → GND      │
+│  Cable Negro (A)→ GPIO 37  │
+│  Cable Blanco(B)→ GPIO 38  │
+│  Cable Naranja(Z)→ GPIO 46 │
+│                            │
+└────────────────────────────┘
 ```
 
-### 📋 Especificaciones
+### Diagrama de Señales
 
-| Parámetro | Valor |
-|-----------|-------|
-| Alimentación | 12V DC |
-| Pulsos/rev | 1200 |
-| Salida | NPN open collector |
-| Frecuencia máx | 100 kHz |
-| Cable A | Fase A (negro) |
-| Cable B | Fase B (blanco) |
-| Cable Z | Índice (naranja) |
+```
+Encoder 12V                ESP32
+┌──────┐                 ┌──────┐
+│ +12V ├─────────────────┤ 12V  │
+│ GND  ├─────────────────┤ GND  │
+│      │                 │      │
+│  A   ├─────┬───────────┤ 37   │
+│      │     │ 10kΩ      │      │
+│  B   ├─────┼───────────┤ 38   │
+│      │     │ 10kΩ      │      │
+│  Z   ├─────┴───────────┤ 46   │
+│      │       10kΩ      │      │
+└──────┘                 └──────┘
+```
 
-### ⚠️ NOTAS
-- Salidas NPN requieren **resistencias pull-up 10kΩ a 3.3V**
-- GPIO 37, 38, 46 configurados con `INPUT_PULLUP`
-- Dirección: A adelanta B = giro derecha
+| Pin Encoder | Color | ESP32 GPIO | Función |
+|-------------|-------|------------|---------|
+| +V | Marrón | 12V | Alimentación |
+| 0V | Azul | GND | Tierra |
+| A | Negro | GPIO 37 | Fase A |
+| B | Blanco | GPIO 38 | Fase B |
+| Z | Naranja | GPIO 46 | Índice (1 pulso/rev) |
+
+### ⚠️ IMPORTANTE: Resistencias Pull-up
+
+Añadir resistencias de 10kΩ desde cada señal (A, B, Z) a 3.3V para asegurar niveles lógicos correctos.
 
 ---
 
 ## 5. LEDS WS2812B
 
-### 🔌 Conexión LED Strip
+### Conexión Directa (Opción Simple)
 
 ```
-┌──────────────────────────────────┐
-│       WS2812B LED Strip          │
-├──────────────────────────────────┤
-│  VCC (Rojo)  ──→ 5V (buck)       │
-│  GND (Negro) ──→ GND             │
-│  DIN (Verde) ──→ GPIO 8 (ESP32)  │
-└──────────────────────────────────┘
+┌──────────────┐         ┌──────────────┐
+│  Buck 5V     │         │  WS2812B     │
+│  Output      │         │  LED Strip   │
+├──────────────┤         ├──────────────┤
+│              │         │              │
+│  +5V ────────┼─────────┤ VCC          │
+│              │         │              │
+│  GND ────────┼─────────┤ GND          │
+│              │         │              │
+└──────────────┘         │              │
+                         │              │
+┌──────────────┐         │              │
+│  ESP32-S3    │         │              │
+├──────────────┤         │              │
+│              │         │              │
+│  GPIO X ─────┼─────────┤ DIN          │
+│              │         │              │
+│  GND ────────┼─────────┤ GND          │
+│              │         │              │
+└──────────────┘         └──────────────┘
 ```
 
-### 📋 Especificaciones
-
-| Parámetro | Valor |
-|-----------|-------|
-| Alimentación | 5V DC |
-| Corriente/LED | ~60mA (blanco max) |
-| Protocolo | 800kHz timing |
-| Data | GPIO 8 (3.3V compatible) |
-
-### ⚠️ NOTAS
-- WS2812B acepta 3.3V como HIGH cuando VCC=5V
-- **Opcional:** Level shifter 3.3V→5V (74HCT245)
-- **Alternativa:** Resistor 470Ω en serie con DIN
-- Fuente 5V debe soportar corriente total LEDs
-
-### 🔧 Diagrama Conexión
+### Conexión con Level Shifter (Opción Recomendada)
 
 ```
-ESP32 GPIO8 ──[470Ω]──→ DIN (primer LED)
-                        
-5V Buck ────────────────→ VCC (strip)
-GND ────────────────────→ GND (strip)
-
-Capacitor 1000µF entre VCC-GND (cerca strip)
+┌────────┐    ┌──────────┐    ┌──────────┐
+│ESP32-S3│    │74HCT245  │    │ WS2812B  │
+│        │    │Level     │    │          │
+│GPIO X ─┼────┤A1     B1 ├────┤ DIN      │
+│ 3.3V ──┼────┤VCC_A     │    │          │
+│        │    │          │    │          │
+│        │    │  VCC_B ──┼────┤ VCC (5V) │
+│        │    │          │    │          │
+│ GND ───┼────┤GND       ├────┤ GND      │
+└────────┘    └──────────┘    └──────────┘
 ```
+
+### Configuración
+
+| Componente | Pin | Conexión |
+|------------|-----|----------|
+| ESP32 | GPIO (definido en pins.h) | Level shifter input |
+| Level Shifter | Output | DIN del primer LED |
+| Buck 5V | +5V | VCC de LEDs |
+| Buck 5V | GND | GND común |
+
+### ⚠️ IMPORTANTE: Capacitor de desacoplo
+
+Añadir capacitor electrolítico 1000µF/16V entre VCC y GND de los LEDs, cerca del primer LED.
 
 ---
 
-## 6. 5x SENSORES RUEDAS LJ12A3-4-Z/BX
+## 6. SENSORES DE RUEDA LJ12A3-4-Z/BX
 
-### 🔌 Conexiones Sensores Inductivos
-
-```
-┌─────────────────────────────────────────┐
-│   LJ12A3-4-Z/BX (Sensor Inductivo 12V)  │
-├─────────────────────────────────────────┤
-│  Cable Marrón  ──→ 12V (Relé 2)         │
-│  Cable Azul    ──→ GND                  │
-│  Cable Negro   ──→ Señal                │
-│                    │                    │
-│                    ├──[1kΩ]──→ 3.3V     │
-│                    └────────→ GPIO      │
-└─────────────────────────────────────────┘
-```
-
-### 📋 Tabla de Conexiones
-
-| Sensor | GPIO | Posición | Color señal |
-|--------|------|----------|-------------|
-| Sensor 1 | GPIO 35 | Front Left (FL) | Negro |
-| Sensor 2 | GPIO 41 | Front Right (FR) | Negro |
-| Sensor 3 | GPIO 36 | Rear Left (RL) | Negro |
-| Sensor 4 | GPIO 40 | Rear Right (RR) | Negro |
-
-### 🔧 Diagrama Divisor de Voltaje
-
-```
-Sensor LJxx (salida 12V NPN):
-  
-  12V ──┬─→ Marrón (VCC)
-        │
-  GND ──┼─→ Azul (GND)
-        │
-  Señal─┴─→ Negro (out)
-           │
-           ├──── [1kΩ] ──── 3.3V (pull-up)
-           │
-           └──────────────→ GPIO (ESP32)
-
-Resistencia pull-up necesaria para NPN
-```
-
-### ⚠️ NOTAS
-- Salida NPN: LOW cuando detecta metal
+### Especificaciones
+- Tipo: Sensor inductivo de proximidad
+- Voltaje: 6-36V DC
+- Salida: NPN normalmente abierta
 - Distancia detección: 4mm
-- Requiere divisor/pull-up para 3.3V
-- Alimentados por Relé 2 (12V Aux)
+
+### Conexión de Cada Sensor
+
+```
+┌──────────────────┐         ┌────────────┐
+│  LJ12A3-4-Z/BX   │         │  ESP32-S3  │
+├──────────────────┤         ├────────────┤
+│                  │         │            │
+│  Marrón (+12V)───┼─────────┤ 12V Aux    │
+│                  │         │            │
+│  Azul (GND)──────┼─────────┤ GND        │
+│                  │         │            │
+│  Negro (Signal)──┼────┬────┤ GPIO       │
+│                  │    │    │            │
+└──────────────────┘    │    └────────────┘
+                       ┌┴┐
+                       │ │ 10kΩ Pull-up
+                       └┬┘
+                        │
+                       3.3V
+```
+
+| Sensor | Cable Color | ESP32 GPIO | Función |
+|--------|-------------|------------|---------|
+| FL (Front Left) | Marrón | 12V | Alimentación |
+| | Azul | GND | Tierra |
+| | Negro | GPIO 35 | Señal pulsos |
+| FR (Front Right) | Marrón | 12V | Alimentación |
+| | Azul | GND | Tierra |
+| | Negro | GPIO 36 | Señal pulsos |
+| RL (Rear Left) | Marrón | 12V | Alimentación |
+| | Azul | GND | Tierra |
+| | Negro | GPIO 41 | Señal pulsos |
+| RR (Rear Right) | Marrón | 12V | Alimentación |
+| | Azul | GND | Tierra |
+| | Negro | GPIO 40 | Señal pulsos |
+
+### Montaje Físico
+
+```
+     Rueda con Dientes
+         ┌──┐
+      ┌──┤  ├──┐
+   ┌──┤  │  │  ├──┐
+   │  └──┤  ├──┘  │
+   │     └──┘     │
+   └──────┬───────┘
+          │
+          │ 4mm máx
+          ▼
+      ┌───────┐
+      │Sensor │
+      │LJ12A3 │
+      └───────┘
+```
 
 ---
 
-## 7. MOTOR DIRECCIÓN RS390 + DRIVER BTS7960
+## 7. MOTOR DIRECCIÓN RS390 + BTS7960 + PCA9685
 
-### 🔌 Conexiones Driver BTS7960
+### Arquitectura del Sistema
 
-```
-┌────────────────────────────────────────────┐
-│         BTS7960 Driver (43A max)           │
-├────────────────────────────────────────────┤
-│  VCC   ──→ 5V (lógica)                     │
-│  GND   ──→ GND                             │
-│  B+    ──→ 12V (Relé 2 - motor power)      │
-│  B-    ──→ GND                             │
-│                                            │
-│  RPWM  ──→ GPIO 11 (PWM derecha)           │
-│  LPWM  ──→ GPIO 12 (PWM izquierda)         │
-│  R_EN  ──→ 3.3V (enable derecha)           │
-│  L_EN  ──→ 3.3V (enable izquierda)         │
-│  R_IS  ──→ (no conectado)                  │
-│  L_IS  ──→ (no conectado)                  │
-│                                            │
-│  M+    ──→ Motor RS390 (terminal +)        │
-│  M-    ──→ Motor RS390 (terminal -)        │
-└────────────────────────────────────────────┘
-```
+**IMPORTANTE:** El sistema de dirección utiliza PCA9685 (controlador PWM I²C de 16 canales) para generar señales PWM de precisión para el BTS7960.
 
-### 📋 Tabla GPIO
-
-| Pin | GPIO | Función |
-|-----|------|---------|
-| RPWM | GPIO 11 | PWM giro derecha |
-| LPWM | GPIO 12 | PWM giro izquierda |
-
-### 🔧 Lógica Control
+### Diagrama Completo de Conexión
 
 ```
-Giro Derecha:
-  RPWM = PWM (0-255)
-  LPWM = 0
-  
-Giro Izquierda:
-  RPWM = 0
-  LPWM = PWM (0-255)
-  
-Punto Muerto:
-  RPWM = 0
-  LPWM = 0
+┌────────────────┐      ┌──────────────┐      ┌──────────────┐      ┌─────────┐
+│   ESP32-S3     │      │   PCA9685    │      │   BTS7960    │      │ RS390   │
+│                │      │  PWM Driver  │      │   Driver     │      │ Motor   │
+├────────────────┤      ├──────────────┤      ├──────────────┤      ├─────────┤
+│                │      │              │      │              │      │         │
+│  I2C SDA (9)───┼──────┤ SDA          │      │              │      │         │
+│  I2C SCL (8)───┼──────┤ SCL    PWM0  ├──────┤ RPWM         │      │         │
+│                │      │        PWM1  ├──────┤ LPWM    ROUT ├──────┤ +       │
+│  EN_R (GPIO)───┼──────┼──────────────┼──────┤ R_EN    LOUT ├──────┤ -       │
+│  EN_L (GPIO)───┼──────┼──────────────┼──────┤ L_EN         │      │         │
+│                │      │              │      │              │      └─────────┘
+│  3.3V ─────────┼──────┤ VCC          │      │              │
+│  GND ──────────┼──────┤ GND          │      │              │
+└────────────────┘      │         VCC  ├──────┤ VCC          │
+                        │         GND  ├──────┤ GND          │      ┌─────────┐
+                        └──────────────┘      │              │      │ 12V PSU │
+                                              │  Vin ────────┼──────┤ +12V    │
+                                              │  GND ────────┼──────┤ GND     │
+                                              └──────────────┘      └─────────┘
 ```
 
-### ⚠️ NOTAS
-- Motor alimentado por Relé 2 (12V Aux)
-- Corriente máxima: ~10A
-- Frecuencia PWM: 1kHz recomendada
-- R_EN y L_EN siempre HIGH (3.3V)
+### PCA9685 Configuración
+
+| PCA9685 Pin | Conexión | Función |
+|-------------|----------|---------|
+| VCC | 3.3V | Alimentación lógica |
+| GND | GND | Tierra |
+| SDA | GPIO 9 | I²C Data |
+| SCL | GPIO 8 | I²C Clock |
+| PWM0 | BTS7960 RPWM | PWM derecha |
+| PWM1 | BTS7960 LPWM | PWM izquierda |
+
+**Dirección I²C PCA9685:** 0x40 (por defecto)
+
+### Conexiones BTS7960
+
+| ESP32/PCA9685 | BTS7960 Pin | Función |
+|---------------|-------------|---------|
+| PCA9685 PWM0 | RPWM | PWM sentido derecha (0-4095) |
+| PCA9685 PWM1 | LPWM | PWM sentido izquierda (0-4095) |
+| ESP32 GPIO | R_EN | Enable derecha (HIGH=activo) |
+| ESP32 GPIO | L_EN | Enable izquierda (HIGH=activo) |
+| 3.3V | VCC | Alimentación lógica |
+| GND | GND | Tierra común |
+
+| BTS7960 Pin | Conexión | Notas |
+|-------------|----------|-------|
+| Vin | +12V | Alimentación potencia |
+| GND | GND power | Tierra potencia |
+| ROUT | Motor + | Salida derecha |
+| LOUT | Motor - | Salida izquierda |
+
+### Control del Motor con PCA9685
+
+```cpp
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+
+void setup() {
+  pwm.begin();
+  pwm.setPWMFreq(1000); // 1kHz para BTS7960
+}
+
+// Girar derecha
+digitalWrite(EN_R, HIGH);
+digitalWrite(EN_L, LOW);
+pwm.setPWM(0, 0, speed); // Canal 0, valor 0-4095
+pwm.setPWM(1, 0, 0);
+
+// Girar izquierda  
+digitalWrite(EN_R, LOW);
+digitalWrite(EN_L, HIGH);
+pwm.setPWM(0, 0, 0);
+pwm.setPWM(1, 0, speed); // Canal 1, valor 0-4095
+
+// Parar
+digitalWrite(EN_R, LOW);
+digitalWrite(EN_L, LOW);
+pwm.setPWM(0, 0, 0);
+pwm.setPWM(1, 0, 0);
+```
+
+### ⚠️ Ventajas PCA9685
+
+- **16 canales PWM independientes** (permite controlar múltiples motores)
+- **Resolución 12-bit** (0-4095 vs 0-255 del ESP32)
+- **Control vía I²C** (libera GPIOs PWM del ESP32)
+- **Frecuencia ajustable** 40Hz-1000Hz
 
 ---
 
-## 8. 4x MOTORES TRACCIÓN + DRIVERS BTS7960
+## 8. MOTORES TRACCIÓN + BTS7960
 
-### 🔌 Configuración por Motor
+### Configuración 4 Motores Independientes
+
+Cada motor tiene su propio BTS7960. Configuración idéntica al motor de dirección pero replicada 4 veces.
 
 ```
-┌────────────────────────────────────────────┐
-│    BTS7960 Driver x4 (uno por motor)       │
-├────────────────────────────────────────────┤
-│  Motor FL (Front Left):                    │
-│    RPWM ──→ GPIO 26                        │
-│    LPWM ──→ GPIO 27                        │
-│    B+   ──→ 24V (Relé 3)                   │
-│                                            │
-│  Motor FR (Front Right):                   │
-│    RPWM ──→ GPIO 32                        │
-│    LPWM ──→ GPIO 33                        │
-│    B+   ──→ 24V (Relé 3)                   │
-│                                            │
-│  Motor RL (Rear Left):                     │
-│    RPWM ──→ GPIO 25                        │
-│    LPWM ──→ GPIO 26                        │
-│    B+   ──→ 24V (Relé 3)                   │
-│                                            │
-│  Motor RR (Rear Right):                    │
-│    RPWM ──→ GPIO 14                        │
-│    LPWM ──→ GPIO 27                        │
-│    B+   ──→ 24V (Relé 3)                   │
-└────────────────────────────────────────────┘
+Motor FL ← BTS7960 #1 ← ESP32 (GPIO_FL_PWM, GPIO_FL_EN)
+Motor FR ← BTS7960 #2 ← ESP32 (GPIO_FR_PWM, GPIO_FR_EN)
+Motor RL ← BTS7960 #3 ← ESP32 (GPIO_RL_PWM, GPIO_RL_EN)
+Motor RR ← BTS7960 #4 ← ESP32 (GPIO_RR_PWM, GPIO_RR_EN)
 ```
 
-### 📋 Resumen Conexiones
+### Alimentación
 
-| Motor | RPWM | LPWM | Alimentación |
-|-------|------|------|--------------|
-| FL | GPIO 26 | GPIO 27 | 24V Relé 3 |
-| FR | GPIO 32 | GPIO 33 | 24V Relé 3 |
-| RL | GPIO 25 | GPIO 26 | 24V Relé 3 |
-| RR | GPIO 14 | GPIO 27 | 24V Relé 3 |
+| Componente | Voltaje | Corriente Máx |
+|------------|---------|---------------|
+| Motor RS775 | 24V DC | 15A cada uno |
+| BTS7960 Vin | 24V DC | 20A capacidad |
+| BTS7960 VCC | 3.3V | 50mA |
 
-### ⚠️ NOTAS
-- Todos alimentados por Relé 3 (24V Tracción)
-- Corriente máxima por motor: ~30A
-- Instalar fusibles 40A por driver
-- Cables gruesos (mínimo 10 AWG)
+### Distribución de Potencia
+
+```
+┌────────────┐
+│  24V PSU   │
+│  60A min   │
+└─────┬──────┘
+      │
+      ├───────► BTS7960 #1 (FL) → Motor FL
+      │
+      ├───────► BTS7960 #2 (FR) → Motor FR
+      │
+      ├───────► BTS7960 #3 (RL) → Motor RL
+      │
+      └───────► BTS7960 #4 (RR) → Motor RR
+```
+
+### ⚠️ IMPORTANTE: Fusibles
+
+Instalar fusible de 20A en cada línea de motor para protección individual.
 
 ---
 
 ## 9. PANTALLA ILI9488 + TÁCTIL XPT2046
 
-### 🔌 Conexiones Display SPI
+### Conexión SPI
 
 ```
-┌─────────────────────────────────────────┐
-│      ILI9488 Display (3.5" 480x320)     │
-│      + XPT2046 Touch Controller         │
-├─────────────────────────────────────────┤
-│  VCC      ──→ 3.3V                      │
-│  GND      ──→ GND                       │
-│                                         │
-│  DISPLAY SPI:                           │
-│  SCK      ──→ GPIO 18 (SPI SCK)         │
-│  MOSI     ──→ GPIO 23 (SPI MOSI)        │
-│  MISO     ──→ GPIO 19 (SPI MISO)        │
-│  CS       ──→ GPIO 15 (chip select)     │
-│  DC       ──→ GPIO 2  (data/command)    │
-│  RST      ──→ GPIO 4  (reset)           │
-│  LED      ──→ 3.3V (backlight)          │
-│                                         │
-│  TOUCH XPT2046:                         │
-│  T_CLK    ──→ GPIO 18 (shared SCK)      │
-│  T_DIN    ──→ GPIO 23 (shared MOSI)     │
-│  T_DO     ──→ GPIO 19 (shared MISO)     │
-│  T_CS     ──→ GPIO 22 (touch CS)        │
-│  T_IRQ    ──→ GPIO 21 (interrupt)       │
-└─────────────────────────────────────────┘
+┌─────────────┐         ┌──────────────┐
+│  ESP32-S3   │         │  ILI9488     │
+├─────────────┤         ├──────────────┤
+│             │         │              │
+│  GPIO_MOSI ─┼─────────┤ MOSI/SDI     │
+│  GPIO_MISO ─┼─────────┤ MISO/SDO     │
+│  GPIO_SCK ──┼─────────┤ SCK          │
+│  GPIO_CS ───┼─────────┤ CS           │
+│  GPIO_DC ───┼─────────┤ DC/RS        │
+│  GPIO_RST ──┼─────────┤ RESET        │
+│             │         │              │
+│  3.3V ──────┼─────────┤ VCC          │
+│  3.3V ──────┼─────────┤ LED (backlit)│
+│  GND ───────┼─────────┤ GND          │
+│             │         │              │
+└─────────────┘         └──────────────┘
+
+Touch XPT2046 (mismo bus SPI)
+┌─────────────┐         ┌──────────────┐
+│  ESP32-S3   │         │  XPT2046     │
+├─────────────┤         ├──────────────┤
+│             │         │              │
+│  GPIO_MOSI ─┼─────────┤ DIN          │
+│  GPIO_MISO ─┼─────────┤ DOUT         │
+│  GPIO_SCK ──┼─────────┤ CLK          │
+│  GPIO_T_CS ─┼─────────┤ CS           │
+│  GPIO_T_IRQ ┼─────────┤ IRQ          │
+│             │         │              │
+└─────────────┘         └──────────────┘
 ```
 
-### 📋 Bus SPI Compartido
+### Tabla de Pines
 
-| Señal | GPIO | Dispositivo |
-|-------|------|-------------|
-| SCK | GPIO 18 | Display + Touch |
-| MOSI | GPIO 23 | Display + Touch |
-| MISO | GPIO 19 | Display + Touch |
-| CS Display | GPIO 15 | Solo Display |
-| CS Touch | GPIO 22 | Solo Touch |
-
-### ⚠️ NOTAS
-- Bus SPI compartido requiere CS separados
-- Frecuencia SPI: 40MHz (display), 2MHz (touch)
-- LED backlight directo a 3.3V (corriente <100mA)
+| Función | ESP32 GPIO | ILI9488 Pin | XPT2046 Pin |
+|---------|------------|-------------|-------------|
+| MOSI | GPIO (SPI) | SDI | DIN |
+| MISO | GPIO (SPI) | SDO | DOUT |
+| SCK | GPIO (SPI) | SCK | CLK |
+| Display CS | GPIO | CS | - |
+| Touch CS | GPIO | - | CS |
+| DC/RS | GPIO | DC | - |
+| Reset | GPIO | RST | - |
+| Touch IRQ | GPIO | - | IRQ |
+| VCC | 3.3V | VCC | VCC |
+| GND | GND | GND | GND |
+| Backlight | 3.3V | LED | - |
 
 ---
 
 ## 10. DFPLAYER MINI
 
-### 🔌 Conexiones Audio Module
+### Conexión UART
 
 ```
-┌──────────────────────────────────────┐
-│        DFPlayer Mini                 │
-├──────────────────────────────────────┤
-│  VCC  ──→ 5V                         │
-│  GND  ──→ GND                        │
-│  TX   ──→ GPIO 44 (RX ESP32)         │
-│  RX   ──→ GPIO 43 (TX ESP32)         │
-│                                      │
-│  SPK1 ──→ Speaker + (4Ω, 3W)        │
-│  SPK2 ──→ Speaker -                  │
-│                                      │
-│  (Micro SD en slot del módulo)       │
-└──────────────────────────────────────┘
+┌──────────────┐         ┌──────────────┐
+│  ESP32-S3    │         │  DFPlayer    │
+├──────────────┤         ├──────────────┤
+│              │         │              │
+│  GPIO 43 ────┼─────────┤ RX           │
+│  GPIO 44 ────┼─────────┤ TX           │
+│              │         │              │
+│  5V ─────────┼─────────┤ VCC          │
+│  GND ────────┼─────────┤ GND          │
+│              │         │              │
+│              │         │ SPK+ ────┐   │
+│              │         │ SPK- ────┤   │
+│              │         │          │   │
+└──────────────┘         └──────────┘   │
+                                        │
+                                   ┌────┴────┐
+                                   │ Speaker │
+                                   │  8Ω 3W  │
+                                   └─────────┘
 ```
 
-### 📋 Configuración
-
-| Pin | Conexión | Notas |
-|-----|----------|-------|
-| VCC | 5V | Rango: 3.2-5V |
-| TX | GPIO 44 | Serial1 RX |
-| RX | GPIO 43 | Serial1 TX |
-| SPK | Speaker 4Ω | Max 3W |
-
-### 🔧 Estructura Micro SD
+### Estructura de Tarjeta SD
 
 ```
-/mp3/
-  ├── 0001.mp3  (Alerta override activo)
-  ├── 0002.mp3  (Alerta batería baja)
-  ├── 0003.mp3  (Confirmación guardado)
-  └── ...
+SD Card (FAT32)
+├── 01/
+│   ├── 001.mp3  (Alert: Bluetooth override active)
+│   ├── 002.mp3  (Alert: Bluetooth disconnected)
+│   ├── 003.mp3  (Alert: Emergency stop)
+│   └── 004.mp3  (Alert: System ready)
+└── 02/
+    ├── 001.mp3  (Music track 1)
+    └── 002.mp3  (Music track 2)
 ```
 
-### ⚠️ NOTAS
-- Archivos numerados 0001-9999
-- Formato: MP3, 32kbps-320kbps
-- Micro SD: FAT32, máx 32GB
-- Baudrate: 9600 bps
+| ESP32 Pin | DFPlayer Pin | Función |
+|-----------|--------------|---------|
+| GPIO 43 | RX | UART TX desde ESP32 |
+| GPIO 44 | TX | UART RX al ESP32 |
+| 5V | VCC | Alimentación |
+| GND | GND | Tierra |
+
+### ⚠️ IMPORTANTE
+
+- Resistencia 1kΩ en serie con RX del DFPlayer
+- Tarjeta SD formateada en FAT32
+- Archivos MP3 nombrados según carpeta/número
 
 ---
 
 ## 11. PEDAL ACELERADOR HALL A1324LUA-T
 
-### 🔌 Conexión Sensor Hall
+### Sensor Hall Lineal
 
 ```
-┌──────────────────────────────────────┐
-│    A1324LUA-T Hall Effect Sensor     │
-├──────────────────────────────────────┤
-│  VCC  ──→ 3.3V                       │
-│  GND  ──→ GND                        │
-│  OUT  ──→ GPIO 3 (ADC1_CH2)          │
-└──────────────────────────────────────┘
+┌──────────────┐         ┌──────────────┐
+│  ESP32-S3    │         │  A1324LUA-T  │
+├──────────────┤         ├──────────────┤
+│              │         │              │
+│  GPIO 3 ─────┼─────────┤ VOUT         │
+│  (ADC)       │         │              │
+│              │         │              │
+│  3.3V ───────┼─────────┤ VCC          │
+│  GND ────────┼─────────┤ GND          │
+│              │         │              │
+└──────────────┘         └──────────────┘
 ```
 
-### 📋 Especificaciones
+### Conexión
 
-| Parámetro | Valor |
-|-----------|-------|
-| Alimentación | 3.3V |
-| Salida | Analógica 0-3.3V |
-| Resolución ADC | 12 bits (0-4095) |
-| GPIO | 3 (ADC1_CH2) |
+| A1324 Pin | ESP32 Pin | Función |
+|-----------|-----------|---------|
+| VCC | 3.3V | Alimentación |
+| GND | GND | Tierra |
+| VOUT | GPIO 3 (ADC) | Salida analógica |
 
-### 🔧 Calibración
+### Rango de Operación
 
-```
-Pedal suelto:   ~500  (ADC)  →  0% acelerador
-Pedal medio:    ~2048 (ADC)  →  50% acelerador
-Pedal a fondo:  ~4000 (ADC)  →  100% acelerador
+- **Voltaje salida**: 0.5V - 3.0V (ratiométrico)
+- **Posición 0%**: ~0.5V (pedal suelto)
+- **Posición 100%**: ~3.0V (pedal pisado)
+- **Resolución ADC**: 12 bits (0-4095)
 
-Auto-calibración en EEPROM:
-  - Min value (pedal suelto)
-  - Max value (pedal a fondo)
-```
+### Calibración
 
-### ⚠️ NOTAS
-- Usar ADC1 (ADC2 conflicto con WiFi)
-- Atenuación: 11dB (rango 0-3.3V)
-- Filtro software promedio móvil (10 muestras)
-- Deadzone configurable (5% por defecto)
-
----
-
-## 12. 2x OPTOACOPLADORES HY-M158
-
-### 🔌 Módulo 1: Shifter (Palanca de cambios)
-
-```
-┌──────────────────────────────────────────┐
-│     HY-M158 Optoacoplador (16 canales)   │
-│     Módulo 1: Shifter Inputs             │
-├──────────────────────────────────────────┤
-│  INPUT SIDE (12V):                       │
-│    VCC    ──→ 12V (Relé 2)               │
-│    GND    ──→ GND                        │
-│    IN0    ──→ Switch P (Park)            │
-│    IN1    ──→ Switch N (Neutral)         │
-│    IN2    ──→ Switch D1 (Drive 1)        │
-│    IN3    ──→ Switch D2 (Drive 2)        │
-│    IN4    ──→ Switch R (Reverse)         │
-│                                          │
-│  OUTPUT SIDE (3.3V):                     │
-│    VCC    ──→ 3.3V                       │
-│    GND    ──→ GND                        │
-│    OUT0   ──→ GPIO 13 (P detect)         │
-│    OUT1   ──→ GPIO 14 (N detect)         │
-│    OUT2   ──→ GPIO 15 (D1 detect)        │
-│    OUT3   ──→ GPIO 16 (D2 detect)        │
-│    OUT4   ──→ GPIO 17 (R detect)         │
-└──────────────────────────────────────────┘
-```
-
-### 🔌 Módulo 2: Entradas Auxiliares
-
-```
-┌──────────────────────────────────────────┐
-│     HY-M158 Optoacoplador (16 canales)   │
-│     Módulo 2: Auxiliary Inputs           │
-├──────────────────────────────────────────┤
-│  Canales 0-13: Reservados para entradas  │
-│  digitales adicionales 12V→3.3V          │
-│                                          │
-│  Ejemplos futuros:                       │
-│    - Botones dashboard adicionales       │
-│    - Sensores límite mecánicos           │
-│    - Interruptores de seguridad          │
-└──────────────────────────────────────────┘
-```
-
-### 📋 Tabla Shifter
-
-| Marcha | Input | GPIO | Estado LOW |
-|--------|-------|------|------------|
-| P (Park) | IN0 | GPIO 13 | Activado |
-| N (Neutral) | IN1 | GPIO 14 | Activado |
-| D1 (Drive 1) | IN2 | GPIO 15 | Activado |
-| D2 (Drive 2) | IN3 | GPIO 16 | Activado |
-| R (Reverse) | IN4 | GPIO 17 | Activado |
-
-### ⚠️ NOTAS
-- Aislamiento óptico entre 12V y 3.3V
-- Entrada HIGH (12V) → Salida LOW (0V)
-- Pull-ups internos activados en GPIOs
-- 14 canales libres para expansión
-
----
-
-## 13. TROUBLESHOOTING
-
-### ❌ Problema: Relés no activan
-
-**Causas posibles:**
-- VCC-JD-VCC no separados → Verificar jumper quitado
-- Lógica invertida → Debe ser LOW trigger
-- Alimentación insuficiente → JD-VCC necesita 5V/500mA
-
-**Solución:**
 ```cpp
-// Inicialización correcta
-pinMode(PIN_RELAY_X, OUTPUT);
-digitalWrite(PIN_RELAY_X, HIGH);  // OFF (LOW trigger)
+// Valores típicos
+#define PEDAL_MIN 620   // ADC en 0.5V
+#define PEDAL_MAX 3720  // ADC en 3.0V
 
-// Activar relé
-digitalWrite(PIN_RELAY_X, LOW);   // ON
+// Lectura calibrada
+int raw = analogRead(GPIO_PEDAL);
+int percent = map(raw, PEDAL_MIN, PEDAL_MAX, 0, 100);
+percent = constrain(percent, 0, 100);
 ```
 
 ---
 
-### ❌ Problema: I²C sensores no detectados
+## 12. OPTOACOPLADORES HY-M158
 
-**Causas posibles:**
-- Pull-ups faltantes en SDA/SCL
-- Múltiples dispositivos misma dirección
-- Cables largos (>30cm)
+### Configuración para Shifter (Selector de Marchas)
 
-**Solución:**
-1. Añadir pull-ups 4.7kΩ a 3.3V en SDA/SCL
-2. Usar multiplexor TCA9548A
-3. Cables cortos y apantallados
-4. Verificar direcciones I²C:
+El shifter proporciona 5 bits binarios para indicar la marcha:
+- P (Park): 00000
+- R (Reverse): 00001
+- N (Neutral): 00010
+- D1 (Drive 1): 00100
+- D2 (Drive 2): 01000
+
+### Conexión
+
+```
+┌──────────────────┐         ┌──────────────┐
+│   Shifter 12V    │         │   HY-M158    │
+│   (lado auto)    │         │ Optoacoplador│
+├──────────────────┤         ├──────────────┤
+│                  │         │              │
+│  Bit 0 ──────────┼─────────┤ IN1     OUT1 ├───► GPIO 13
+│  Bit 1 ──────────┼─────────┤ IN2     OUT2 ├───► GPIO 14
+│  Bit 2 ──────────┼─────────┤ IN3     OUT3 ├───► GPIO 15
+│  Bit 3 ──────────┼─────────┤ IN4     OUT4 ├───► GPIO 16
+│  Bit 4 ──────────┼─────────┤ IN5     OUT5 ├───► GPIO 17
+│                  │         │              │
+│  +12V ───────────┼─────────┤ VCC_IN       │
+│  GND ────────────┼─────────┤ GND_IN       │
+│                  │         │              │
+└──────────────────┘         │ VCC_OUT ─────┼───► 3.3V
+                             │ GND_OUT ─────┼───► GND
+                             │              │
+                             └──────────────┘
+```
+
+### Tabla de Conexiones
+
+| Shifter | HY-M158 IN | HY-M158 OUT | ESP32 GPIO |
+|---------|------------|-------------|------------|
+| Bit 0 | IN1 | OUT1 | GPIO 13 |
+| Bit 1 | IN2 | OUT2 | GPIO 14 |
+| Bit 2 | IN3 | OUT3 | GPIO 15 |
+| Bit 3 | IN4 | OUT4 | GPIO 16 |
+| Bit 4 | IN5 | OUT5 | GPIO 17 |
+
+### Alimentación
+
+| Pin | Conexión | Voltaje |
+|-----|----------|---------|
+| VCC_IN | Shifter +12V | 12V |
+| GND_IN | Shifter GND | 0V |
+| VCC_OUT | ESP32 3.3V | 3.3V |
+| GND_OUT | ESP32 GND | 0V |
+
+### Decodificación de Marchas
+
 ```cpp
-Wire.begin(21, 22);  // SDA, SCL
-Wire.beginTransmission(0x70);  // TCA9548A
-if (Wire.endTransmission() == 0) {
-    Serial.println("Multiplexor OK");
+// Lectura de 5 bits
+uint8_t gear_bits = 0;
+gear_bits |= digitalRead(GPIO_13) << 0;
+gear_bits |= digitalRead(GPIO_14) << 1;
+gear_bits |= digitalRead(GPIO_15) << 2;
+gear_bits |= digitalRead(GPIO_16) << 3;
+gear_bits |= digitalRead(GPIO_17) << 4;
+
+// Decodificar marcha
+switch(gear_bits) {
+    case 0b00000: /* Park */     break;
+    case 0b00001: /* Reverse */  break;
+    case 0b00010: /* Neutral */  break;
+    case 0b00100: /* Drive 1 */  break;
+    case 0b01000: /* Drive 2 */  break;
 }
 ```
 
 ---
 
-### ❌ Problema: Encoder no cuenta
+## 13. DIAGRAMA DE POTENCIA GENERAL
 
-**Causas posibles:**
-- Falta pull-up en señales NPN
-- Velocidad excesiva (>100kHz)
-- Ruido en cables
+### Distribución de Alimentación
 
-**Solución:**
-1. Activar pull-ups internos:
-```cpp
-pinMode(PIN_ENCODER_A, INPUT_PULLUP);
-pinMode(PIN_ENCODER_B, INPUT_PULLUP);
 ```
-2. Cables apantallados <50cm
-3. Capacitor 100nF entre cada señal y GND
+┌──────────────────────────────────────────────────┐
+│          FUENTES DE ALIMENTACIÓN                 │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  Batería Principal 24V ────┬────────────────┐   │
+│                            │                │   │
+│                            ├─► Relé 3 ──────┼─► 4x BTS7960 → Motores 24V
+│                            │   (Traction)   │   │
+│                            │                │   │
+│  Buck 24V→12V ─────────────┼────────────────┘   │
+│                            │                    │
+│                            ├─► Relé 2 ──────┬─► Motor Dirección 12V
+│                            │   (12V Aux)    │   │
+│                            │                ├─► 5x Sensores Rueda 12V
+│                            │                │   │
+│                            │                ├─► Encoder 12V
+│                            │                │   │
+│                            │                └─► Shifter 12V
+│                            │                    │
+│  Buck 12V→5V ──────────────┼─► Relé 1 ──────┬─► ESP32-S3 (5V → 3.3V reg)
+│                            │   (Power Hold) │   │
+│                            │                ├─► 6x BTS7960 VCC (lógica)
+│                            │                │   │
+│                            │                ├─► Relés JD-VCC
+│                            │                │   │
+│                            │                ├─► DFPlayer Mini
+│                            │                │   │
+│                            │                └─► LEDs WS2812B
+│                            │                    │
+│  Regulador 5V→3.3V ────────┴─► ESP32-S3        │
+│  (onboard ESP32)                │               │
+│                                 ├─► INA226 x6   │
+│                                 │               │
+│                                 ├─► TCA9548A    │
+│                                 │               │
+│                                 ├─► ILI9488     │
+│                                 │               │
+│                                 ├─► XPT2046     │
+│                                 │               │
+│                                 ├─► Pedal Hall  │
+│                                 │               │
+│                                 └─► HY-M158 OUT │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+### Consumos Estimados
+
+| Componente | Voltaje | Corriente | Potencia |
+|------------|---------|-----------|----------|
+| 4x Motores tracción | 24V | 60A (pico) | 1440W |
+| Motor dirección | 12V | 5A (pico) | 60W |
+| ESP32-S3 + periféricos | 3.3V | 500mA | 1.65W |
+| LEDs WS2812B (100 LEDs) | 5V | 3A (máx) | 15W |
+| Sensores + Encoder | 12V | 500mA | 6W |
+| Pantalla ILI9488 | 3.3V | 100mA | 0.33W |
+| **TOTAL ESTIMADO** | - | - | **~1523W** |
+
+### Requisitos de Fuente de Alimentación
+
+1. **Batería principal**: 24V, 60Ah mínimo (para autonomía)
+2. **Buck 24V→12V**: 10A capacidad mínima
+3. **Buck 12V→5V**: 5A capacidad mínima
+4. **Regulador 5V→3.3V**: 1A capacidad (usualmente onboard ESP32)
 
 ---
 
-### ❌ Problema: LEDs WS2812B no funcionan
+## 14. TROUBLESHOOTING
 
-**Causas posibles:**
-- Voltaje data insuficiente (3.3V vs 5V)
-- Fuente 5V débil
-- Primer LED dañado
+### Problemas Comunes y Soluciones
 
-**Solución:**
-1. Añadir level shifter 74HCT245
-2. O resistor 470Ω en serie con DIN
-3. Capacitor 1000µF en fuente 5V
-4. Verificar fuente: 60mA × número_LEDs
+#### 1. ESP32 no arranca
+- ✓ Verificar alimentación 5V estable
+- ✓ Comprobar que GPIO 0 no está conectado a GND (modo boot)
+- ✓ Verificar conexión USB
 
----
+#### 2. Sensores I²C no responden
+- ✓ Verificar resistencias pull-up (4.7kΩ)
+- ✓ Comprobar direcciones I²C (escaneo con código test)
+- ✓ Verificar alimentación 3.3V a sensores
+- ✓ Usar I2C Recovery del firmware
 
-### ❌ Problema: Pantalla en blanco
+#### 3. Relés no conmutan
+- ✓ Verificar modo LOW trigger configurado
+- ✓ Comprobar voltaje JD-VCC (debe ser 5V)
+- ✓ Medir señal en pines IN1-IN4 (debe ser HIGH=OFF, LOW=ON)
+- ✓ Verificar que jumper VCC-JD-VCC está QUITADO
 
-**Causas posibles:**
-- Backlight apagado
-- CS display activo cuando no debe
-- Voltaje incorrecto (5V en vez de 3.3V)
+#### 4. Motores no responden
+- ✓ Verificar secuencia de relés (Relay 3 debe estar ON)
+- ✓ Comprobar alimentación 24V/12V según motor
+- ✓ Verificar señales PWM con osciloscopio
+- ✓ Medir voltaje en salidas BTS7960
 
-**Solución:**
-1. Conectar LED a 3.3V (backlight)
-2. Verificar CS HIGH cuando inactivo
-3. **NUNCA** alimentar con 5V (daña permanente)
-4. Verificar bus SPI compartido:
-```cpp
-// CS display HIGH por defecto
-pinMode(CS_DISPLAY, OUTPUT);
-digitalWrite(CS_DISPLAY, HIGH);
-```
+#### 5. Encoder da lecturas erráticas
+- ✓ Añadir resistencias pull-up 10kΩ
+- ✓ Verificar alimentación 12V estable
+- ✓ Comprobar distancia de montaje (debe ser precisa)
+- ✓ Añadir capacitores 100nF en señales A, B, Z
 
----
+#### 6. Pantalla táctil no responde
+- ✓ Verificar calibración táctil
+- ✓ Comprobar CS separados para display y touch
+- ✓ Verificar que IRQ touch está conectado
 
-### ⚡ ESQUEMA GENERAL DE ALIMENTACIÓN
+#### 7. Bluetooth no conecta
+- ✓ Verificar pairing con código 0000 o 1234
+- ✓ Comprobar que mando está en modo pairing
+- ✓ Reiniciar ESP32 y mando
+- ✓ Verificar que BluetoothSerial está incluido en firmware
 
-```
-Batería 24V
-    │
-    ├──→ Relé 3 ──→ 24V Motores Tracción (4x BTS7960)
-    │
-    ├──→ Buck 24V→12V ──→ Relé 2 ──→ 12V Auxiliares
-    │                              ├─→ Motor Dirección
-    │                              ├─→ Encoder
-    │                              └─→ Sensores Ruedas
-    │
-    └──→ Buck 24V→5V ──→ Relé 1 ──→ 5V Sistema
-                                   ├─→ Buck 5V→3.3V ──→ ESP32
-                                   ├─→ JD-VCC Relés
-                                   ├─→ LEDs WS2812B
-                                   └─→ DFPlayer Mini
+#### 8. LEDs WS2812B no encienden
+- ✓ Verificar alimentación 5V estable
+- ✓ Añadir capacitor 1000µF
+- ✓ Comprobar conexión DIN al primer LED
+- ✓ Usar level shifter si señal es 3.3V
 
-GND común para todos los sistemas
-```
+#### 9. Pedal acelerador no calibra
+- ✓ Verificar voltaje de salida (0.5V-3.0V)
+- ✓ Comprobar conexión a pin ADC correcto
+- ✓ Re-ejecutar calibración desde menú
+- ✓ Verificar alimentación 3.3V estable
 
-### 🔒 FUSIBLES RECOMENDADOS
-
-| Circuito | Amperaje | Tipo |
-|----------|----------|------|
-| Batería principal | 80A | Blade |
-| 24V Tracción | 60A | Blade |
-| 12V Auxiliares | 20A | Blade |
-| 5V Sistema | 10A | Blade |
-| Por motor tracción | 40A | Blade |
+#### 10. Watchdog resetea continuamente
+- ✓ Aumentar timeout watchdog (actualmente 5s)
+- ✓ Verificar que no hay bucles bloqueantes
+- ✓ Comprobar que Watchdog::feed() se llama en loop
+- ✓ Revisar logs seriales para identificar bloqueo
 
 ---
 
-## 📌 CHECKLIST FINAL
+## 🔧 LISTA DE VERIFICACIÓN PRE-ENCENDIDO
 
-**Antes de encender por primera vez:**
+Antes de alimentar el sistema por primera vez:
 
-- [ ] Verificar alimentación separada VCC/JD-VCC en relés
-- [ ] Pull-ups en encoder (10kΩ a 3.3V)
-- [ ] Pull-ups en I²C SDA/SCL (4.7kΩ a 3.3V)
-- [ ] Capacitor 1000µF en fuente LEDs
-- [ ] Todos los GND conectados (común)
-- [ ] Fusibles instalados en todos los circuitos
-- [ ] Cables motores correctamente polarizados
-- [ ] Micro SD formateada FAT32 con archivos MP3
-- [ ] Pantalla alimentada con 3.3V (NO 5V)
-- [ ] Backlight pantalla conectado
-- [ ] CS display y touch a HIGH por defecto
+### Alimentación
+- [ ] Verificar polaridad de todas las fuentes (+/-)
+- [ ] Comprobar voltajes: 24V, 12V, 5V, 3.3V
+- [ ] Fusibles instalados en todas las líneas de potencia
+- [ ] Jumper VCC-JD-VCC de relés **QUITADO**
 
-**Primera prueba:**
-1. Alimentar solo 5V (sin motores)
-2. Verificar ESP32 arranca
-3. Verificar comunicación I²C
-4. Probar display y touch
-5. Solo entonces activar relés y motores
+### Conexiones
+- [ ] Todos los GND conectados a tierra común
+- [ ] Resistencias pull-up en I²C (SDA, SCL)
+- [ ] Resistencias pull-up en encoder (A, B, Z)
+- [ ] Level shifter para WS2812B (opcional pero recomendado)
+- [ ] Capacitor desacoplo en LEDs (1000µF)
+
+### Sensores
+- [ ] INA226 x6 conectados a TCA9548A
+- [ ] Direcciones I²C verificadas (TCA 0x70, INA 0x40)
+- [ ] Sensores rueda con pull-up 10kΩ
+- [ ] Encoder con pull-up 10kΩ
+
+### Motores
+- [ ] BTS7960 x5 alimentados correctamente
+- [ ] Polaridad motores correcta
+- [ ] Fusibles 20A en cada motor de tracción
+
+### Display y Audio
+- [ ] Pantalla ILI9488 en bus SPI
+- [ ] Touch XPT2046 con CS separado
+- [ ] DFPlayer con tarjeta SD (FAT32)
+- [ ] Speaker 8Ω conectado
+
+### Software
+- [ ] Firmware compilado sin errores
+- [ ] Configuración EEPROM inicializada
+- [ ] Calibración pedal ejecutada
+- [ ] Calibración encoder ejecutada
 
 ---
 
 ## 📞 SOPORTE
 
-**Documentación adicional:**
-- Código fuente: `src/main.cpp`
-- Configuración pines: `include/pins.h`
-- Manual software: `docs/SOFTWARE_GUIDE.md`
+Si encuentras problemas no listados aquí:
 
-**Sistema verificado y listo para deployment en ESP32-S3-DevKitC-1**
+1. Verificar logs serial (115200 baud)
+2. Usar menú diagnóstico del firmware
+3. Comprobar con multímetro las tensiones
+4. Revisar continuidad de conexiones
+5. Consultar código fuente en `firmware Coche Marcos/`
 
-✅ **2245 líneas de código production-ready**
-✅ **Hardware completamente documentado**
-✅ **Listo para compilación y montaje**
+**IMPORTANTE**: Siempre desconectar alimentación antes de modificar conexiones.
 
 ---
+
+## 📄 LICENCIA
+
+Este documento forma parte del proyecto Electric Car Control System.
+© 2024 - Uso educativo y de desarrollo.
+

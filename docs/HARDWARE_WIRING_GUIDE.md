@@ -175,21 +175,83 @@ digitalWrite(PIN_RELAY_1, LOW);  // Relé ON
        ┌──────────────┐
 Motor  │   INA226     │  ESP32
 +24V ──┤ VIN+    VCC  ├── 3.3V
-       │             │
+  │    │             │
+  │    │ Shunt       │
+  └────┤ Resistor    │
 Motor  │ VIN-    SDA  ├── Canal TCA9548A
 GND ───┤        SCL  ├── Canal TCA9548A
        │        GND  ├── GND
        └──────────────┘
 ```
 
-| Sensor | Canal TCA | Monitoriza | Rango |
-|--------|-----------|-----------|-------|
-| INA226 #0 | 0 | Motor FL (Front Left) | 0-50A |
-| INA226 #1 | 1 | Motor FR (Front Right) | 0-50A |
-| INA226 #2 | 2 | Motor RL (Rear Left) | 0-50A |
-| INA226 #3 | 3 | Motor RR (Rear Right) | 0-50A |
-| INA226 #4 | 4 | Battery Main | 0-100A |
-| INA226 #5 | 5 | Steering Motor | 0-20A |
+**IMPORTANTE: Resistencias Shunt Requeridas**
+
+Cada INA226 necesita una resistencia shunt en serie con la línea de corriente:
+
+| Sensor | Canal TCA | Monitoriza | Rango | Shunt Resistor | Potencia Shunt |
+|--------|-----------|-----------|-------|----------------|----------------|
+| INA226 #0 | 0 | Motor FL | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #1 | 1 | Motor FR | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #2 | 2 | Motor RL | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #3 | 3 | Motor RR | 0-50A | 2mΩ (0.002Ω) | 5W mínimo |
+| INA226 #4 | 4 | Battery Main | 0-100A | 1mΩ (0.001Ω) | 10W mínimo |
+| INA226 #5 | 5 | Steering Motor | 0-20A | 5mΩ (0.005Ω) | 2W mínimo |
+
+### Diagrama de Montaje Shunt
+
+```
+Motor Positivo (+24V)
+      │
+      ├───────► A INA226 VIN+
+      │
+   ┌──┴──┐
+   │     │ Shunt Resistor (ej: 2mΩ, 5W)
+   │     │ (resistencia muy baja, alta potencia)
+   └──┬──┘
+      │
+      ├───────► A INA226 VIN-
+      │
+   Motor (-) / GND
+```
+
+### Cálculo Shunt Resistor
+
+**Fórmula:** R_shunt = V_max / I_max
+
+Donde:
+- V_max = 81.92mV (máximo voltaje INA226)
+- I_max = Corriente máxima esperada
+
+**Ejemplo para motor 50A:**
+- R_shunt = 0.08192V / 50A = 1.6mΩ
+- Usar: 2mΩ (valor comercial cercano)
+- Potencia: P = I² × R = 50² × 0.002 = 5W
+- **Usar shunt de 5W mínimo, recomendado 10W**
+
+### ⚠️ CRÍTICO: Especificaciones Shunt
+
+1. **Tolerancia:** ±1% o mejor
+2. **Tipo:** Resistencia de potencia de bajo valor
+3. **Montaje:** Con disipador térmico si >3W
+4. **Ejemplo de compra:** 
+   - "2mΩ 10W Shunt Resistor"
+   - FL-2 (2mΩ) common shunt
+   - Manganina o aleación baja temperatura
+
+### Configuración INA226 en Firmware
+
+```cpp
+// Configurar INA226 con shunt de 2mΩ
+#define SHUNT_RESISTOR 0.002  // 2mΩ
+#define MAX_CURRENT 50.0      // 50A
+
+ina226.begin();
+ina226.configure(INA226_AVERAGES_16, 
+                 INA226_BUS_CONV_TIME_1100US,
+                 INA226_SHUNT_CONV_TIME_1100US,
+                 INA226_MODE_SHUNT_BUS_CONT);
+ina226.calibrate(SHUNT_RESISTOR, MAX_CURRENT);
+```
 
 ### Conexión I²C al ESP32
 
@@ -393,37 +455,57 @@ Añadir capacitor electrolítico 1000µF/16V entre VCC y GND de los LEDs, cerca 
 
 ---
 
-## 7. MOTOR DIRECCIÓN RS390 + BTS7960
+## 7. MOTOR DIRECCIÓN RS390 + BTS7960 + PCA9685
 
-### Diagrama de Conexión
+### Arquitectura del Sistema
+
+**IMPORTANTE:** El sistema de dirección utiliza PCA9685 (controlador PWM I²C de 16 canales) para generar señales PWM de precisión para el BTS7960.
+
+### Diagrama Completo de Conexión
 
 ```
-┌────────────────┐      ┌──────────────┐      ┌─────────┐
-│   ESP32-S3     │      │   BTS7960    │      │ RS390   │
-│                │      │   Driver     │      │ Motor   │
-├────────────────┤      ├──────────────┤      ├─────────┤
-│                │      │              │      │         │
-│  PWM_R (GPIO)──┼──────┤ RPWM         │      │         │
-│  PWM_L (GPIO)──┼──────┤ LPWM    ROUT ├──────┤ +       │
-│  EN (GPIO)─────┼──────┤ R_EN    LOUT ├──────┤ -       │
-│  EN (GPIO)─────┼──────┤ L_EN         │      │         │
-│                │      │              │      └─────────┘
-│  3.3V ─────────┼──────┤ VCC          │
-│  GND ──────────┼──────┤ GND          │      ┌─────────┐
-│                │      │              │      │ 12V PSU │
-└────────────────┘      │  Vin ────────┼──────┤ +12V    │
-                        │  GND ────────┼──────┤ GND     │
-                        └──────────────┘      └─────────┘
+┌────────────────┐      ┌──────────────┐      ┌──────────────┐      ┌─────────┐
+│   ESP32-S3     │      │   PCA9685    │      │   BTS7960    │      │ RS390   │
+│                │      │  PWM Driver  │      │   Driver     │      │ Motor   │
+├────────────────┤      ├──────────────┤      ├──────────────┤      ├─────────┤
+│                │      │              │      │              │      │         │
+│  I2C SDA (9)───┼──────┤ SDA          │      │              │      │         │
+│  I2C SCL (8)───┼──────┤ SCL    PWM0  ├──────┤ RPWM         │      │         │
+│                │      │        PWM1  ├──────┤ LPWM    ROUT ├──────┤ +       │
+│  EN_R (GPIO)───┼──────┼──────────────┼──────┤ R_EN    LOUT ├──────┤ -       │
+│  EN_L (GPIO)───┼──────┼──────────────┼──────┤ L_EN         │      │         │
+│                │      │              │      │              │      └─────────┘
+│  3.3V ─────────┼──────┤ VCC          │      │              │
+│  GND ──────────┼──────┤ GND          │      │              │
+└────────────────┘      │         VCC  ├──────┤ VCC          │
+                        │         GND  ├──────┤ GND          │      ┌─────────┐
+                        └──────────────┘      │              │      │ 12V PSU │
+                                              │  Vin ────────┼──────┤ +12V    │
+                                              │  GND ────────┼──────┤ GND     │
+                                              └──────────────┘      └─────────┘
 ```
+
+### PCA9685 Configuración
+
+| PCA9685 Pin | Conexión | Función |
+|-------------|----------|---------|
+| VCC | 3.3V | Alimentación lógica |
+| GND | GND | Tierra |
+| SDA | GPIO 9 | I²C Data |
+| SCL | GPIO 8 | I²C Clock |
+| PWM0 | BTS7960 RPWM | PWM derecha |
+| PWM1 | BTS7960 LPWM | PWM izquierda |
+
+**Dirección I²C PCA9685:** 0x40 (por defecto)
 
 ### Conexiones BTS7960
 
-| ESP32 Pin | BTS7960 Pin | Función |
-|-----------|-------------|---------|
-| GPIO (PWM_R) | RPWM | PWM sentido derecha (0-255) |
-| GPIO (PWM_L) | LPWM | PWM sentido izquierda (0-255) |
-| GPIO (EN_R) | R_EN | Enable derecha (HIGH=activo) |
-| GPIO (EN_L) | L_EN | Enable izquierda (HIGH=activo) |
+| ESP32/PCA9685 | BTS7960 Pin | Función |
+|---------------|-------------|---------|
+| PCA9685 PWM0 | RPWM | PWM sentido derecha (0-4095) |
+| PCA9685 PWM1 | LPWM | PWM sentido izquierda (0-4095) |
+| ESP32 GPIO | R_EN | Enable derecha (HIGH=activo) |
+| ESP32 GPIO | L_EN | Enable izquierda (HIGH=activo) |
 | 3.3V | VCC | Alimentación lógica |
 | GND | GND | Tierra común |
 
@@ -434,25 +516,43 @@ Añadir capacitor electrolítico 1000µF/16V entre VCC y GND de los LEDs, cerca 
 | ROUT | Motor + | Salida derecha |
 | LOUT | Motor - | Salida izquierda |
 
-### Control del Motor
+### Control del Motor con PCA9685
 
 ```cpp
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+
+void setup() {
+  pwm.begin();
+  pwm.setPWMFreq(1000); // 1kHz para BTS7960
+}
+
 // Girar derecha
 digitalWrite(EN_R, HIGH);
 digitalWrite(EN_L, LOW);
-analogWrite(PWM_R, speed); // 0-255
-analogWrite(PWM_L, 0);
+pwm.setPWM(0, 0, speed); // Canal 0, valor 0-4095
+pwm.setPWM(1, 0, 0);
 
 // Girar izquierda  
 digitalWrite(EN_R, LOW);
 digitalWrite(EN_L, HIGH);
-analogWrite(PWM_R, 0);
-analogWrite(PWM_L, speed); // 0-255
+pwm.setPWM(0, 0, 0);
+pwm.setPWM(1, 0, speed); // Canal 1, valor 0-4095
 
 // Parar
 digitalWrite(EN_R, LOW);
 digitalWrite(EN_L, LOW);
+pwm.setPWM(0, 0, 0);
+pwm.setPWM(1, 0, 0);
 ```
+
+### ⚠️ Ventajas PCA9685
+
+- **16 canales PWM independientes** (permite controlar múltiples motores)
+- **Resolución 12-bit** (0-4095 vs 0-255 del ESP32)
+- **Control vía I²C** (libera GPIOs PWM del ESP32)
+- **Frecuencia ajustable** 40Hz-1000Hz
 
 ---
 

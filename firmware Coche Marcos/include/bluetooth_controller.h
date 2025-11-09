@@ -4,12 +4,22 @@
 #include <Arduino.h>
 #include <BluetoothSerial.h>
 
-// 8BitDo Zero 2 button mapping
+// 8BitDo Zero 2 control mapping (SIMPLIFIED)
+// D-PAD Arrows:
+//   UP    = Forward (adelante)
+//   DOWN  = Reverse (marcha atrás)
+//   LEFT  = Turn left (girar izquierda)
+//   RIGHT = Turn right (girar derecha)
+// Buttons:
+//   A = Emergency STOP (parada emergencia)
+//   B = Resume normal operation (volver a control conductor)
+//   X = Force Park (forzar marcha P por seguridad)
+//   Y = Additional safety button
 enum class BTButton {
     A = 0,      // Emergency STOP
     B = 1,      // Resume normal operation
-    X = 2,      // Force Park
-    Y = 3,      // Toggle systems override
+    X = 2,      // Force Park (safety)
+    Y = 3,      // Additional safety
     START = 4,  // Pair new controller
     SELECT = 5  // Disconnect
 };

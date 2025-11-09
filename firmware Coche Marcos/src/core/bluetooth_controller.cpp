@@ -161,44 +161,89 @@ void BluetoothController::loadPairing() {
 
 void BluetoothController::processPacket(uint8_t* data, size_t len) {
     // 8BitDo Zero 2 sends HID gamepad reports
-    // This is a simplified parser - actual implementation depends on controller mode
+    // Simplified mapping: D-pad arrows = steering/throttle
     
     if (len < 8) return;
     
-    // Parse joystick values (bytes 2-5, assuming standard HID report)
-    state.left_x = map(data[2], 0, 255, -100, 100);
-    state.left_y = map(data[3], 0, 255, -100, 100);
-    state.right_x = map(data[4], 0, 255, -100, 100);
-    state.right_y = map(data[5], 0, 255, -100, 100);
+    // Parse D-pad values (byte 2 contains D-pad state)
+    uint8_t dpad = data[2];
+    
+    // D-pad mapping (standard HID):
+    // 0=up, 1=up-right, 2=right, 3=down-right, 4=down, 5=down-left, 6=left, 7=up-left, 8=neutral
+    state.left_x = 0;   // Steering (left/right arrows)
+    state.left_y = 0;
+    state.right_x = 0;
+    state.right_y = 0;  // Throttle (up/down arrows)
+    
+    switch(dpad) {
+        case 0: // Arrow UP = Forward
+            state.right_y = 100;  // Full throttle forward
+            break;
+        case 2: // Arrow RIGHT = Turn right
+            state.left_x = 100;   // Turn right
+            break;
+        case 4: // Arrow DOWN = Reverse
+            state.right_y = -100; // Full reverse
+            break;
+        case 6: // Arrow LEFT = Turn left
+            state.left_x = -100;  // Turn left
+            break;
+        case 1: // Up-Right = Forward + Turn right
+            state.right_y = 100;
+            state.left_x = 100;
+            break;
+        case 3: // Down-Right = Reverse + Turn right
+            state.right_y = -100;
+            state.left_x = 100;
+            break;
+        case 5: // Down-Left = Reverse + Turn left
+            state.right_y = -100;
+            state.left_x = -100;
+            break;
+        case 7: // Up-Left = Forward + Turn left
+            state.right_y = 100;
+            state.left_x = -100;
+            break;
+        default: // Neutral
+            state.left_x = 0;
+            state.right_y = 0;
+            break;
+    }
     
     // Parse button states (byte 6-7, bit flags)
     uint16_t buttons = (data[7] << 8) | data[6];
-    state.button_a = buttons & 0x0001;
-    state.button_b = buttons & 0x0002;
-    state.button_x = buttons & 0x0004;
-    state.button_y = buttons & 0x0008;
+    state.button_a = buttons & 0x0001;  // Emergency STOP
+    state.button_b = buttons & 0x0002;  // Resume normal
+    state.button_x = buttons & 0x0004;  // Safety: Force Park
+    state.button_y = buttons & 0x0008;  // Safety: additional safety
     state.button_start = buttons & 0x0010;
     state.button_select = buttons & 0x0020;
     
-    // Handle emergency stop button (A)
-    if (state.button_a && !state.override_active) {
+    // Handle emergency stop button (A) - HIGHEST PRIORITY
+    if (state.button_a) {
         handleEmergencyStop();
+        return; // Don't process other inputs during emergency stop
     }
     
     // Handle resume button (B)
     if (state.button_b && state.override_active) {
         handleResume();
+        return;
     }
     
-    // Activate override if joysticks moved significantly
-    if (!state.override_active) {
-        if (abs(state.left_x) > 30 || abs(state.right_y) > 30) {
-            state.override_active = true;
-            state.mode = OverrideMode::FULL;
-            state.override_start_ms = millis();
-            Audio::playAlert(Audio::Alert::WARNING);
-            Serial.println("Bluetooth override ACTIVE");
-        }
+    // Activate override if D-pad is being used
+    if (!state.override_active && dpad != 8) {
+        state.override_active = true;
+        state.mode = OverrideMode::FULL;
+        state.override_start_ms = millis();
+        Audio::playAlert(Audio::Alert::WARNING);
+        Serial.println("Bluetooth override ACTIVE - remote control engaged");
+    }
+    
+    // Clear override when D-pad returns to neutral (if not emergency stopped)
+    if (state.override_active && dpad == 8 && state.mode != OverrideMode::EMERGENCY_STOP) {
+        clearOverride();
+        Serial.println("Bluetooth override cleared - D-pad neutral");
     }
 }
 
@@ -236,13 +281,16 @@ void BluetoothController::checkConnectionTimeout() {
     
     // Check if we haven't received data in a while
     if (now - state.last_packet_ms > BT_TIMEOUT_MS) {
-        Serial.println("Bluetooth connection timeout");
+        Serial.println("Bluetooth connection timeout - controller battery may be low");
         state.connected = false;
         
-        // Dead man's switch: if override was active, emergency stop
+        // IMPORTANT: Clear override but DON'T emergency stop
+        // This allows driver to continue if controller battery dies
         if (state.override_active) {
-            handleEmergencyStop();
-            Serial.println("Dead man's switch activated - connection lost during override!");
+            clearOverride();
+            Audio::playAlert(Audio::Alert::WARNING);
+            Serial.println("Bluetooth override cleared - driver has full control");
+            Serial.println("Controller disconnected - check battery if needed");
         }
     }
 }

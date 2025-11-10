@@ -11,8 +11,8 @@ constexpr uint8_t MAX_DEVICES = 16;
 static DeviceState devices[MAX_DEVICES];
 
 // Pines I²C (de pins.h)
-static uint8_t pinSDA = PIN_SDA;
-static uint8_t pinSCL = PIN_SCL;
+static uint8_t pinSDA = PIN_I2C_SDA;
+static uint8_t pinSCL = PIN_I2C_SCL;
 
 void init() {
     // Inicializar estados
@@ -24,12 +24,11 @@ void init() {
         devices[i].nextRetryMs = 0;
     }
     
-    Logger::log(Logger::Priority::INFO, "I2CRecovery", 
-                "Sistema recuperación I²C inicializado");
+    Serial.println("[I2CRecovery] Sistema recuperación I²C inicializado");
 }
 
 bool recoverBus() {
-    Logger::log(Logger::Priority::WARNING, "I2CRecovery", "Iniciando bus recovery");
+    Serial.println("[I2CRecovery] WARNING: Iniciando bus recovery");
     
     // 1. Terminar transacción I²C actual
     Wire.end();
@@ -64,7 +63,7 @@ bool recoverBus() {
         
         // Verificar si SDA se liberó
         if (digitalRead(pinSDA) == HIGH) {
-            Logger::debugf("Bus liberado tras %d pulsos SCL", i + 1);
+            Serial.printf("[I2CRecovery] Bus liberado tras %d pulsos SCL\n", i + 1);
             break;
         }
     }
@@ -90,7 +89,7 @@ bool recoverBus() {
     Wire.setClock(100000);  // 100 kHz (modo estándar)
     
     if (recovered) {
-        Logger::log(Logger::Priority::INFO, "I2CRecovery", "Bus recovery exitoso");
+        Serial.println("[I2CRecovery] Bus recovery exitoso");
     } else {
         Logger::log(Logger::Priority::ERROR, "I2CRecovery", 
                     "Bus recovery FALLIDO - Hardware problem");
@@ -101,7 +100,7 @@ bool recoverBus() {
 
 bool tcaSelectSafe(uint8_t channel, uint8_t tcaAddr) {
     if (channel > 7) {
-        Logger::errorf("TCA channel inválido: %d", channel);
+        Serial.printf("[I2CRecovery] ERROR: TCA channel inválido: %d\n", channel);
         return false;
     }
     
@@ -119,7 +118,7 @@ bool tcaSelectSafe(uint8_t channel, uint8_t tcaAddr) {
     Watchdog::feed();
     
     if (result != 0) {
-        Logger::errorf("TCA select ch%d falló (error %d)", channel, result);
+        Serial.printf("[I2CRecovery] ERROR: TCA select ch%d falló (error %d)\n", channel, result);
         
         // Intentar bus recovery
         if (recoverBus()) {
@@ -129,7 +128,7 @@ bool tcaSelectSafe(uint8_t channel, uint8_t tcaAddr) {
             result = Wire.endTransmission();
             
             if (result == 0) {
-                Logger::debugf("TCA select ch%d OK tras recovery", channel);
+                Serial.printf("[I2CRecovery] TCA select ch%d OK tras recovery\n", channel);
                 return true;
             }
         }
@@ -137,7 +136,7 @@ bool tcaSelectSafe(uint8_t channel, uint8_t tcaAddr) {
     }
     
     if (elapsed > 50) {
-        Logger::debugf("TCA select ch%d lento (%lums)", channel, elapsed);
+        Serial.printf("[I2CRecovery] TCA select ch%d lento (%lums)\n", channel, elapsed);
     }
     
     return true;
@@ -190,7 +189,7 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
         
         if (result != 0) {
             if ((millis() - startMs) > TIMEOUT_MS) {
-                Logger::errorf("I2C timeout escribiendo reg (dev 0x%02X)", deviceAddr);
+                Serial.printf("[I2CRecovery] ERROR: I2C timeout escribiendo reg (dev 0x%02X)\n", deviceAddr);
                 continue;  // Retry
             }
             continue;
@@ -202,7 +201,7 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
         
         if (received != length) {
             if ((millis() - startMs) > TIMEOUT_MS) {
-                Logger::errorf("I2C timeout leyendo (dev 0x%02X)", deviceAddr);
+                Serial.printf("[I2CRecovery] ERROR: I2C timeout leyendo (dev 0x%02X)\n", deviceAddr);
             }
             continue;  // Retry
         }
@@ -302,11 +301,11 @@ bool writeBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
 }
 
 bool reinitSensor(uint8_t channel, uint8_t deviceAddr, uint8_t deviceId) {
-    Logger::log(Logger::Priority::INFO, "I2CRecovery", "Re-init sensor...");
+    Serial.println("[I2CRecovery] Re-init sensor...");
     
     // 1. Intentar re-seleccionar canal TCA9548A
     if (!tcaSelectSafe(channel)) {
-        Logger::errorf("Re-init: TCA select ch%d falló", channel);
+        Serial.printf("[ERROR] Re-init: TCA select ch%d falló\n", channel);
         
         // 2. Intentar bus recovery completo
         if (!recoverBus()) {
@@ -324,7 +323,7 @@ bool reinitSensor(uint8_t channel, uint8_t deviceAddr, uint8_t deviceId) {
     uint8_t result = Wire.endTransmission();
     
     if (result == 0) {
-        Logger::log(Logger::Priority::INFO, "I2CRecovery", "Sensor re-init exitoso");
+        Serial.println("[INFO] I2CRecovery: Sensor re-init exitoso");
         
         // Resetear estado
         if (deviceId < MAX_DEVICES) {
@@ -333,7 +332,7 @@ bool reinitSensor(uint8_t channel, uint8_t deviceAddr, uint8_t deviceId) {
         return true;
     }
     
-    Logger::errorf("Sensor re-init falló (ping error %d)", result);
+    Serial.printf("[ERROR] Sensor re-init falló (ping error %d)\n", result);
     return false;
 }
 
@@ -357,7 +356,7 @@ void resetDeviceState(uint8_t deviceId) {
     devices[deviceId].lastAttemptMs = 0;
     devices[deviceId].nextRetryMs = 0;
     
-    Logger::debugf("Device %d estado reseteado", deviceId);
+    Serial.printf("[DEBUG] Device %d estado reseteado\n", deviceId);
 }
 
 bool isBusHealthy() {

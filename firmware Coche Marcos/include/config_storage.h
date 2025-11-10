@@ -48,40 +48,34 @@ namespace ConfigStorage {
     
     // Default configuration values
     const Config DEFAULT_CONFIG = {
-        // Sensors enabled by default
-        .sensorFL_enabled = true,
-        .sensorFR_enabled = true,
-        .sensorRL_enabled = true,
-        .sensorRR_enabled = true,
-        .ina226_enabled = true,
+        true,  // sensorFL_enabled
+        true,  // sensorFR_enabled
+        true,  // sensorRL_enabled
+        true,  // sensorRR_enabled
+        true,  // ina226_enabled
         
-        // Encoder defaults (will be calibrated)
-        .encoder_center = 600,
-        .encoder_left_limit = 0,
-        .encoder_right_limit = 1200,
+        600,   // encoder_center
+        0,     // encoder_left_limit
+        1200,  // encoder_right_limit
         
-        // LED defaults
-        .led_pattern = 0,      // Rainbow
-        .led_brightness = 128, // 50%
-        .led_speed = 128,      // Medium
-        .led_color = 0xFF0000, // Red
+        0,        // led_pattern (Rainbow)
+        128,      // led_brightness (50%)
+        128,      // led_speed (Medium)
+        0xFF0000, // led_color (Red)
         
-        // Power management defaults (ms)
-        .power_hold_delay = 5000,
-        .aux_delay = 100,
-        .traction_delay = 500,
+        5000,  // power_hold_delay
+        100,   // aux_delay
+        500,   // traction_delay
         
-        // Systems enabled by default
-        .abs_enabled = true,
-        .tcs_enabled = true,
-        .regen_enabled = true,
-        .wifi_enabled = true,
+        true,  // abs_enabled
+        true,  // tcs_enabled
+        true,  // regen_enabled
+        true,  // wifi_enabled
         
-        // Bluetooth defaults
-        .bt_mac_address = "",      // Empty until paired
-        .bt_auto_reconnect = true,
+        "0",  // bt_mac_address (empty until paired)
+        true,   // bt_auto_reconnect
         
-        .checksum = 0
+        0       // checksum
     };
     
     // Initialize storage system

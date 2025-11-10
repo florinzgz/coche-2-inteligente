@@ -140,22 +140,23 @@
 // -----------------------
 // BTS7960 – Motores de rueda (PWM + IN1/IN2)
 // Remapeado para ESP32-S3-DevKitC-1 44 pines (GPIOs 0-21, 35-48)
+// Ubicar en GPIOs altos (45-48) y bajos (0-3, 11-12) libres
 // -----------------------
-#define PIN_FL_PWM        45   // Frontal Izquierda PWM (relocated from 35, conflict with WHEEL0)
-#define PIN_FL_IN1        46   // Frontal Izquierda IN1 (relocated from 36, conflict with WHEEL1)
-#define PIN_FL_IN2        1   // Frontal Izquierda IN2 (relocated from 37, conflict with ENCODER_A)
+#define PIN_FL_PWM        3   // Frontal Izquierda PWM (unique assignment)
+#define PIN_FL_IN1        11  // Frontal Izquierda IN1 (unique assignment)
+#define PIN_FL_IN2        12  // Frontal Izquierda IN2 (unique assignment)
 
-#define PIN_FR_PWM        39  // Frontal Derecha PWM (relocated from 7, conflict with RELAY_SPARE)
-#define PIN_FR_IN1        42  // Frontal Derecha IN1 (relocated from 6, conflict with SHIFTER_D2)
-#define PIN_FR_IN2        48  // Frontal Derecha IN2 (no change)
+#define PIN_FR_PWM        16  // Frontal Derecha PWM (unique assignment)
+#define PIN_FR_IN1        17  // Frontal Derecha IN1 (unique assignment)  
+#define PIN_FR_IN2        18  // Frontal Derecha IN2 (unique assignment)
 
-#define PIN_RL_PWM        35  // Trasera Izquierda PWM (relocated from 10, conflict with SHIFTER_P)
-#define PIN_RL_IN1        47  // Trasera Izquierda IN1 (no change)
-#define PIN_RL_IN2        36  // Trasera Izquierda IN2 (relocated from 41, conflict with WHEEL2)
+#define PIN_RL_PWM        0   // Trasera Izquierda PWM (unique assignment)
+#define PIN_RL_IN1        1   // Trasera Izquierda IN1 (unique assignment)
+#define PIN_RL_IN2        10  // Trasera Izquierda IN2 (unique assignment)
 
-#define PIN_RR_PWM        37  // Trasera Derecha PWM (relocated from 0, for better routing)
-#define PIN_RR_IN1        11  // Trasera Derecha IN1 (no change)
-#define PIN_RR_IN2        12  // Trasera Derecha IN2 (no change)
+#define PIN_RR_PWM        45  // Trasera Derecha PWM (unique assignment)
+#define PIN_RR_IN1        46  // Trasera Derecha IN1 (unique assignment)
+#define PIN_RR_IN2        47  // Trasera Derecha IN2 (unique assignment)
 
 // -----------------------
 // Helpers

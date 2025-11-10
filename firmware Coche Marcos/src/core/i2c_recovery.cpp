@@ -44,13 +44,12 @@ bool recoverBus() {
     bool sclStuck = (digitalRead(pinSCL) == LOW);
     
     if (!sdaStuck && !sclStuck) {
-        Logger::log(Logger::Priority::INFO, "I2CRecovery", 
-                    "Bus OK - SDA/SCL HIGH, no necesita recovery");
+        Logger::info("I2CRecovery: Bus OK - SDA/SCL HIGH, no necesita recovery");
         Wire.begin(pinSDA, pinSCL);
         return true;
     }
     
-    Logger::debugf("Bus stuck - SDA:%d SCL:%d", 
+    Logger::infof("Bus stuck - SDA:%d SCL:%d", 
                    digitalRead(pinSDA), digitalRead(pinSCL));
     
     // 4. Generar hasta 9 pulsos SCL para liberar SDA
@@ -91,8 +90,7 @@ bool recoverBus() {
     if (recovered) {
         Serial.println("[I2CRecovery] Bus recovery exitoso");
     } else {
-        Logger::log(Logger::Priority::ERROR, "I2CRecovery", 
-                    "Bus recovery FALLIDO - Hardware problem");
+        Logger::error("I2CRecovery: Bus recovery FALLIDO - Hardware problem");
     }
     
     return recovered;
@@ -162,8 +160,7 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
     if ((now - dev.lastSuccessMs) > SKIP_SENSOR_AFTER_MS) {
         if (dev.online) {
             dev.online = false;
-            Logger::log(Logger::Priority::WARNING, "I2CRecovery", 
-                        "Dispositivo marcado OFFLINE (1 min sin respuesta)");
+            Logger::warn("I2CRecovery: Dispositivo marcado OFFLINE (1 min sin respuesta)");
         }
         // Aún intentar (backoff permitirá retry esporádico)
     }
@@ -175,7 +172,7 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
     
     for (uint8_t retry = 0; retry <= MAX_RETRIES; retry++) {
         if (retry > 0) {
-            Logger::debugf("I2C retry %d/%d (dev 0x%02X)", 
+            Logger::infof("I2C retry %d/%d (dev 0x%02X)", 
                            retry, MAX_RETRIES, deviceAddr);
             delay(50);  // Pequeña pausa entre retries
         }
@@ -236,8 +233,7 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
     
     // Intentar bus recovery si fallos >= 3
     if (dev.consecutiveFailures >= 3) {
-        Logger::log(Logger::Priority::WARNING, "I2CRecovery", 
-                    "Intentando bus recovery...");
+        Logger::warn("I2CRecovery: Intentando bus recovery...");
         recoverBus();
     }
     

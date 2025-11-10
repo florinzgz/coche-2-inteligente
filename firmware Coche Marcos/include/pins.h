@@ -40,41 +40,41 @@
 
 // -----------------------
 // Pedal acelerador - Sensor Hall A1324LUA-T (analógico, 5V output)
-// GPIO 3 tiene ADC disponible, requiere divisor tensión 5V→3.3V o HY-M158
+// GPIO 35 tiene ADC disponible, requiere divisor tensión 5V→3.3V o HY-M158
 // -----------------------
-#define PIN_PEDAL         3   // GPIO 3 (ADC1_CH2) - Compatible con ADC
+#define PIN_PEDAL         35  // GPIO 35 (ADC) - Compatible con ADC
 
 // -----------------------
 // Encoder dirección
 // Remapeado para ESP32-S3-DevKitC-1
 // Conectado vía HY-M158 optoacopladores para aislamiento
 // -----------------------
-#define PIN_ENCODER_A     37  // Canal A (cambiado de 44)
-#define PIN_ENCODER_B     38  // Canal B (cambiado de 45)
-#define PIN_ENCODER_Z     46  // Señal Z (centrado) - CORREGIDO: GPIO 25 no existe en placa 44 pines
+#define PIN_ENCODER_A     37  // Canal A
+#define PIN_ENCODER_B     38  // Canal B
+#define PIN_ENCODER_Z     39  // Señal Z (centrado)
 
 // -----------------------
 // DFPlayer Mini (UART1)
 // -----------------------
-#define PIN_DFPLAYER_RX   43  // GPIO 43 (cambio para evitar conflicto)
-#define PIN_DFPLAYER_TX   44  // GPIO 44 (cambio para evitar conflicto)
+#define PIN_DFPLAYER_RX   44  // GPIO 44
+#define PIN_DFPLAYER_TX   43  // GPIO 43
 
 // -----------------------
 // Pantalla TFT ILI9488 (SPI)
 // Remapeado para ESP32-S3-DevKitC-1 44 pines
 // -----------------------
-#define PIN_TFT_CS        8   // Chip Select (corregido de 7, conflicto con FR_PWM)
-#define PIN_TFT_DC        33  // Data/Command (cambio para evitar conflicto)
-#define PIN_TFT_RST       34  // Reset (cambio para evitar conflicto)
+#define PIN_TFT_CS        8   // Chip Select
+#define PIN_TFT_DC        13  // Data/Command
+#define PIN_TFT_RST       14  // Reset
 #define PIN_TFT_MOSI      11  // SPI MOSI
-#define PIN_TFT_MISO      13  // SPI MISO (corregido de 12, conflicto con RR_IN2)
-#define PIN_TFT_SCK       14  // SPI Clock (corregido de 13)
+#define PIN_TFT_MISO      12  // SPI MISO
+#define PIN_TFT_SCK       10  // SPI Clock
 
 // -----------------------
 // Táctil (XPT2046 SPI)
 // -----------------------
-#define PIN_TOUCH_CS      22   // Chip Select táctil (relocated from 17 to avoid conflict with D1)
-#define PIN_TOUCH_IRQ     21   // Interrupción táctil (corregido de 15)
+#define PIN_TOUCH_CS      9   // Chip Select táctil
+#define PIN_TOUCH_IRQ     46  // Interrupción táctil
 
 // -----------------------
 // Botones físicos
@@ -83,9 +83,8 @@
 // 4x4/4x2 (12V) vía HY-M158 Módulo #2 CH6 - Switch 2 posiciones con pull-up
 // -----------------------
 #define PIN_BTN_LIGHTS    45  // Botón luces
-#define PIN_BTN_MEDIA     39  // Botón multimedia (vía HY-M158 12V) 
-#define PIN_BTN_4X4       42  // Botón 4x4/4x2 (vía HY-M158 12V, 2 posiciones, pull-up)
-#define PIN_BTN_BATTERY   16  // Botón batería (cambio para evitar conflicto con I2C_SDA)
+#define PIN_BTN_MEDIA     40  // Botón multimedia (vía HY-M158 12V) 
+#define PIN_BTN_4X4       41  // Botón 4x4/4x2 (vía HY-M158 12V, 2 posiciones, pull-up)
 
 // -----------------------
 // Palanca de cambios (Shifter) - 5 posiciones
@@ -102,22 +101,22 @@
 // Conectados vía HY-M158 optoacopladores (5V)
 // Remapeados para ESP32-S3-DevKitC-1
 // -----------------------
-#define PIN_WHEEL0        35  // FL (Frontal Izquierda) vía HY-M158
-#define PIN_WHEEL1        36  // FR (Frontal Derecha) vía HY-M158
-#define PIN_WHEEL2        41  // RL (Trasera Izquierda) vía HY-M158
-#define PIN_WHEEL3        40  // RR (Trasera Derecha) vía HY-M158
+#define PIN_WHEEL0        20  // FL (Frontal Izquierda) vía HY-M158
+#define PIN_WHEEL1        21  // FR (Frontal Derecha) vía HY-M158
+#define PIN_WHEEL2        36  // RL (Trasera Izquierda) vía HY-M158
+#define PIN_WHEEL3        17  // RR (Trasera Derecha) vía HY-M158
 
 // -----------------------
 // DS18B20 (OneWire) - Sensor temperatura
 // -----------------------
-#define PIN_ONEWIRE       1  // GPIO 1 (corregido de 19, conflicto con SHIFTER_R)
+#define PIN_ONEWIRE       15  // GPIO 15
 
 // -----------------------
 // I2C (INA226 + PCA9685 + MCP23017 + TCA9548A)
 // Remapeado para ESP32-S3-DevKitC-1
 // -----------------------
-#define PIN_I2C_SDA       9  // GPIO 9 (corregido de 21)
-#define PIN_I2C_SCL       20  // GPIO 20 (sin cambios)
+#define PIN_I2C_SDA       16  // GPIO 16
+#define PIN_I2C_SCL       9   // GPIO 9
 
 // Direcciones I²C del sistema:
 // 0x40 - INA226 (6 unidades multiplexadas vía TCA9548A)
@@ -142,21 +141,21 @@
 // Remapeado para ESP32-S3-DevKitC-1 44 pines (GPIOs 0-21, 35-48)
 // Asignados a GPIOs completamente libres sin conflictos
 // -----------------------
-#define PIN_FL_PWM        15  // Frontal Izquierda PWM (GPIO libre)
-#define PIN_FL_IN1        23  // Frontal Izquierda IN1 (GPIO libre - strapping pin but usable)
-#define PIN_FL_IN2        24  // Frontal Izquierda IN2 (GPIO libre)
+#define PIN_FL_PWM        23  // Frontal Izquierda PWM
+#define PIN_FL_IN1        24  // Frontal Izquierda IN1
+#define PIN_FL_IN2        25  // Frontal Izquierda IN2
 
-#define PIN_FR_PWM        25  // Frontal Derecha PWM (GPIO libre)
-#define PIN_FR_IN1        26  // Frontal Derecha IN1 (GPIO libre)  
-#define PIN_FR_IN2        27  // Frontal Derecha IN2 (GPIO libre)
+#define PIN_FR_PWM        26  // Frontal Derecha PWM
+#define PIN_FR_IN1        27  // Frontal Derecha IN1  
+#define PIN_FR_IN2        28  // Frontal Derecha IN2
 
-#define PIN_RL_PWM        28  // Trasera Izquierda PWM (GPIO libre)
-#define PIN_RL_IN1        29  // Trasera Izquierda IN1 (GPIO libre)
-#define PIN_RL_IN2        30  // Trasera Izquierda IN2 (GPIO libre)
+#define PIN_RL_PWM        29  // Trasera Izquierda PWM
+#define PIN_RL_IN1        30  // Trasera Izquierda IN1
+#define PIN_RL_IN2        31  // Trasera Izquierda IN2
 
-#define PIN_RR_PWM        31  // Trasera Derecha PWM (GPIO libre)
-#define PIN_RR_IN1        32  // Trasera Derecha IN1 (GPIO libre)
-#define PIN_RR_IN2        0   // Trasera Derecha IN2 (GPIO libre - safe for output)
+#define PIN_RR_PWM        32  // Trasera Derecha PWM
+#define PIN_RR_IN1        33  // Trasera Derecha IN1
+#define PIN_RR_IN2        34  // Trasera Derecha IN2
 
 // -----------------------
 // Helpers
@@ -189,7 +188,6 @@ static inline bool pin_is_assigned(uint8_t gpio) {
     case PIN_BTN_LIGHTS:
     case PIN_BTN_MEDIA:
     case PIN_BTN_4X4:
-    case PIN_BTN_BATTERY:
     case PIN_WHEEL0:
     case PIN_WHEEL1:
     case PIN_WHEEL2:

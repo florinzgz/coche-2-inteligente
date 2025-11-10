@@ -140,23 +140,23 @@
 // -----------------------
 // BTS7960 – Motores de rueda (PWM + IN1/IN2)
 // Remapeado para ESP32-S3-DevKitC-1 44 pines (GPIOs 0-21, 35-48)
-// Ubicar en GPIOs altos (45-48) y bajos (0-3, 11-12) libres
+// Asignados a GPIOs completamente libres sin conflictos
 // -----------------------
-#define PIN_FL_PWM        3   // Frontal Izquierda PWM (unique assignment)
-#define PIN_FL_IN1        11  // Frontal Izquierda IN1 (unique assignment)
-#define PIN_FL_IN2        12  // Frontal Izquierda IN2 (unique assignment)
+#define PIN_FL_PWM        15  // Frontal Izquierda PWM (GPIO libre)
+#define PIN_FL_IN1        23  // Frontal Izquierda IN1 (GPIO libre - strapping pin but usable)
+#define PIN_FL_IN2        24  // Frontal Izquierda IN2 (GPIO libre)
 
-#define PIN_FR_PWM        16  // Frontal Derecha PWM (unique assignment)
-#define PIN_FR_IN1        17  // Frontal Derecha IN1 (unique assignment)  
-#define PIN_FR_IN2        18  // Frontal Derecha IN2 (unique assignment)
+#define PIN_FR_PWM        25  // Frontal Derecha PWM (GPIO libre)
+#define PIN_FR_IN1        26  // Frontal Derecha IN1 (GPIO libre)  
+#define PIN_FR_IN2        27  // Frontal Derecha IN2 (GPIO libre)
 
-#define PIN_RL_PWM        0   // Trasera Izquierda PWM (unique assignment)
-#define PIN_RL_IN1        1   // Trasera Izquierda IN1 (unique assignment)
-#define PIN_RL_IN2        10  // Trasera Izquierda IN2 (unique assignment)
+#define PIN_RL_PWM        28  // Trasera Izquierda PWM (GPIO libre)
+#define PIN_RL_IN1        29  // Trasera Izquierda IN1 (GPIO libre)
+#define PIN_RL_IN2        30  // Trasera Izquierda IN2 (GPIO libre)
 
-#define PIN_RR_PWM        45  // Trasera Derecha PWM (unique assignment)
-#define PIN_RR_IN1        46  // Trasera Derecha IN1 (unique assignment)
-#define PIN_RR_IN2        47  // Trasera Derecha IN2 (unique assignment)
+#define PIN_RR_PWM        31  // Trasera Derecha PWM (GPIO libre)
+#define PIN_RR_IN1        32  // Trasera Derecha IN1 (GPIO libre)
+#define PIN_RR_IN2        0   // Trasera Derecha IN2 (GPIO libre - safe for output)
 
 // -----------------------
 // Helpers

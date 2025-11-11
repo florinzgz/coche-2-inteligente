@@ -1,247 +1,222 @@
 #include "led_controller.h"
 #include "pins.h"
 
-#define NUM_LEDS 30  // Adjust based on actual LED count
-#define LED_TYPE WS2812B
-#define COLOR_ORDER GRB
+// LED arrays
+static CRGB frontLeds[LED_FRONT_COUNT];
+static CRGB rearLeds[LED_REAR_COUNT];
 
-// Static member initialization
-LEDPattern LEDController::currentPattern = PATTERN_RAINBOW;
-uint32_t LEDController::currentColor = 0xFF0000; // Default red
-uint8_t LEDController::currentBrightness = 128;
-uint8_t LEDController::currentSpeed = 128;
-bool LEDController::enabled = true;
-unsigned long LEDController::lastUpdate = 0;
-uint16_t LEDController::animationStep = 0;
-
-static CRGB leds[NUM_LEDS];
-
-void LEDController::init() {
-    FastLED.addLeds<LED_TYPE, PIN_LEDS, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.setBrightness(currentBrightness);
-    FastLED.clear();
-    FastLED.show();
-}
-
-void LEDController::update() {
-    if (!enabled) {
-        return;
+// Internal state
+namespace LEDController {
+    static FrontMode currentFrontMode = FRONT_OFF;
+    static RearMode currentRearMode = REAR_OFF;
+    static TurnSignal currentTurnSignal = TURN_OFF;
+    static Config config = {128, 20, true};
+    static bool enabled = true;
+    static unsigned long lastUpdate = 0;
+    static unsigned long lastTurnBlink = 0;
+    static bool turnBlinkState = false;
+    static uint16_t animationStep = 0;
+    
+    void init() {
+        FastLED.addLeds<WS2812B, LED_FRONT_PIN, GRB>(frontLeds, LED_FRONT_COUNT);
+        FastLED.addLeds<WS2812B, LED_REAR_PIN, GRB>(rearLeds, LED_REAR_COUNT);
+        FastLED.setBrightness(config.brightness);
+        FastLED.clear(true);
     }
     
-    unsigned long currentTime = millis();
-    uint8_t delay = calculateDelay();
-    
-    if (currentTime - lastUpdate < delay) {
-        return;
+    void update() {
+        if (!enabled) return;
+        
+        unsigned long now = millis();
+        if (now - lastUpdate < config.updateRateMs) return;
+        lastUpdate = now;
+        
+        // Update turn signal blink (500ms period)
+        if (now - lastTurnBlink >= 500) {
+            lastTurnBlink = now;
+            turnBlinkState = !turnBlinkState;
+        }
+        
+        animationStep++;
+        
+        // Update front LEDs based on mode
+        updateFrontLEDs();
+        
+        // Update rear LEDs based on mode
+        updateRearLEDs();
+        
+        // Apply turn signals
+        updateTurnSignals();
+        
+        FastLED.show();
     }
     
-    lastUpdate = currentTime;
-    animationStep++;
-    
-    // Call appropriate pattern update function
-    switch (currentPattern) {
-        case PATTERN_OFF:
-            updateOff();
-            break;
-        case PATTERN_SOLID:
-            updateSolid();
-            break;
-        case PATTERN_RAINBOW:
-            updateRainbow();
-            break;
-        case PATTERN_FADE:
-            updateFade();
-            break;
-        case PATTERN_STROBE:
-            updateStrobe();
-            break;
-        case PATTERN_CHASE:
-            updateChase();
-            break;
-        case PATTERN_SCANNER:
-            updateScanner();
-            break;
-        case PATTERN_TWINKLE:
-            updateTwinkle();
-            break;
+    void updateFrontLEDs() {
+        switch (currentFrontMode) {
+            case FRONT_OFF:
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Black);
+                break;
+                
+            case FRONT_KITT_IDLE: {
+                // KITT scanner effect
+                uint8_t pos = beatsin8(30, 0, LED_FRONT_COUNT - 1);
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Black);
+                frontLeds[pos] = CRGB::Red;
+                if (pos > 0) frontLeds[pos-1] = CRGB(64, 0, 0);
+                if (pos < LED_FRONT_COUNT - 1) frontLeds[pos+1] = CRGB(64, 0, 0);
+                break;
+            }
+            
+            case FRONT_ACCEL_LOW:
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::OrangeRed);
+                break;
+                
+            case FRONT_ACCEL_MED:
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Orange);
+                break;
+                
+            case FRONT_ACCEL_HIGH:
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Yellow);
+                break;
+                
+            case FRONT_ACCEL_MAX:
+                fill_rainbow(frontLeds, LED_FRONT_COUNT, animationStep * 2);
+                break;
+                
+            case FRONT_REVERSE: {
+                // White scanner
+                uint8_t pos = beatsin8(40, 0, LED_FRONT_COUNT - 1);
+                fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Black);
+                frontLeds[pos] = CRGB::White;
+                if (pos > 0) frontLeds[pos-1] = CRGB(64, 64, 64);
+                if (pos < LED_FRONT_COUNT - 1) frontLeds[pos+1] = CRGB(64, 64, 64);
+                break;
+            }
+            
+            case FRONT_ABS_ALERT:
+                // Red/white flash
+                fill_solid(frontLeds, LED_FRONT_COUNT, (animationStep & 0x08) ? CRGB::Red : CRGB::White);
+                break;
+                
+            case FRONT_TCS_ALERT:
+                // Amber flash
+                fill_solid(frontLeds, LED_FRONT_COUNT, (animationStep & 0x08) ? CRGB::Orange : CRGB::Black);
+                break;
+        }
     }
     
-    FastLED.show();
-}
-
-void LEDController::setPattern(LEDPattern pattern) {
-    if (pattern < PATTERN_COUNT) {
-        currentPattern = pattern;
-        animationStep = 0;
-        FastLED.clear();
+    void updateRearLEDs() {
+        switch (currentRearMode) {
+            case REAR_OFF:
+                fill_solid(rearLeds, LED_REAR_COUNT, CRGB::Black);
+                break;
+                
+            case REAR_POSITION:
+                // Center red at 20%
+                for (int i = LED_REAR_CENTER_START; i <= LED_REAR_CENTER_END; i++) {
+                    rearLeds[i] = CRGB(51, 0, 0);  // ~20% of 255
+                }
+                break;
+                
+            case REAR_BRAKE:
+                // Center red at 100%
+                for (int i = LED_REAR_CENTER_START; i <= LED_REAR_CENTER_END; i++) {
+                    rearLeds[i] = CRGB::Red;
+                }
+                break;
+                
+            case REAR_BRAKE_EMERGENCY:
+                // Flashing red
+                for (int i = LED_REAR_CENTER_START; i <= LED_REAR_CENTER_END; i++) {
+                    rearLeds[i] = (animationStep & 0x04) ? CRGB::Red : CRGB::Black;
+                }
+                break;
+                
+            case REAR_REVERSE:
+                // Center white
+                for (int i = LED_REAR_CENTER_START; i <= LED_REAR_CENTER_END; i++) {
+                    rearLeds[i] = CRGB::White;
+                }
+                break;
+                
+            case REAR_REGEN_ACTIVE: {
+                // Blue pulse
+                uint8_t brightness = beatsin8(60, 50, 255);
+                for (int i = LED_REAR_CENTER_START; i <= LED_REAR_CENTER_END; i++) {
+                    rearLeds[i] = CRGB(0, 0, brightness);
+                }
+                break;
+            }
+        }
     }
-}
-
-LEDPattern LEDController::getPattern() {
-    return currentPattern;
-}
-
-const char* LEDController::getPatternName(LEDPattern pattern) {
-    switch (pattern) {
-        case PATTERN_OFF: return "Off";
-        case PATTERN_SOLID: return "Solid";
-        case PATTERN_RAINBOW: return "Rainbow";
-        case PATTERN_FADE: return "Fade";
-        case PATTERN_STROBE: return "Strobe";
-        case PATTERN_CHASE: return "Chase";
-        case PATTERN_SCANNER: return "Scanner";
-        case PATTERN_TWINKLE: return "Twinkle";
-        default: return "Unknown";
+    
+    void updateTurnSignals() {
+        bool showLeft = (currentTurnSignal == TURN_LEFT || currentTurnSignal == TURN_HAZARD) && turnBlinkState;
+        bool showRight = (currentTurnSignal == TURN_RIGHT || currentTurnSignal == TURN_HAZARD) && turnBlinkState;
+        
+        // Left turn signal
+        for (int i = LED_REAR_LEFT_START; i <= LED_REAR_LEFT_END; i++) {
+            rearLeds[i] = showLeft ? CRGB::Orange : CRGB::Black;
+        }
+        
+        // Right turn signal
+        for (int i = LED_REAR_RIGHT_START; i <= LED_REAR_RIGHT_END; i++) {
+            rearLeds[i] = showRight ? CRGB::Orange : CRGB::Black;
+        }
     }
-}
-
-void LEDController::setColor(uint32_t rgb) {
-    currentColor = rgb;
-}
-
-uint32_t LEDController::getColor() {
-    return currentColor;
-}
-
-void LEDController::setColorRGB(uint8_t r, uint8_t g, uint8_t b) {
-    currentColor = ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-}
-
-void LEDController::setBrightness(uint8_t brightness) {
-    currentBrightness = brightness;
-    FastLED.setBrightness(brightness);
-}
-
-uint8_t LEDController::getBrightness() {
-    return currentBrightness;
-}
-
-void LEDController::setSpeed(uint8_t speed) {
-    currentSpeed = speed;
-}
-
-uint8_t LEDController::getSpeed() {
-    return currentSpeed;
-}
-
-void LEDController::enable() {
-    enabled = true;
-}
-
-void LEDController::disable() {
-    enabled = false;
-    FastLED.clear();
-    FastLED.show();
-}
-
-bool LEDController::isEnabled() {
-    return enabled;
-}
-
-uint8_t LEDController::calculateDelay() {
-    // Convert speed (0-255) to delay (200ms-10ms)
-    // Higher speed = lower delay = faster animation
-    return map(currentSpeed, 0, 255, 200, 10);
-}
-
-CRGB LEDController::wheel(uint8_t pos) {
-    // Color wheel for rainbow effects
-    if (pos < 85) {
-        return CRGB(pos * 3, 255 - pos * 3, 0);
-    } else if (pos < 170) {
-        pos -= 85;
-        return CRGB(255 - pos * 3, 0, pos * 3);
-    } else {
-        pos -= 170;
-        return CRGB(0, pos * 3, 255 - pos * 3);
+    
+    void setFrontMode(FrontMode mode) {
+        currentFrontMode = mode;
     }
-}
-
-// Pattern implementations
-void LEDController::updateOff() {
-    FastLED.clear();
-}
-
-void LEDController::updateSolid() {
-    uint8_t r = (currentColor >> 16) & 0xFF;
-    uint8_t g = (currentColor >> 8) & 0xFF;
-    uint8_t b = currentColor & 0xFF;
     
-    fill_solid(leds, NUM_LEDS, CRGB(r, g, b));
-}
-
-void LEDController::updateRainbow() {
-    for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = wheel(((i * 256 / NUM_LEDS) + animationStep) & 255);
+    void setFrontFromThrottle(float throttlePercent) {
+        if (throttlePercent < 0) {
+            setFrontMode(FRONT_REVERSE);
+        } else if (throttlePercent == 0) {
+            setFrontMode(FRONT_KITT_IDLE);
+        } else if (throttlePercent < 25.0f) {
+            setFrontMode(FRONT_ACCEL_LOW);
+        } else if (throttlePercent < 50.0f) {
+            setFrontMode(FRONT_ACCEL_MED);
+        } else if (throttlePercent < 75.0f) {
+            setFrontMode(FRONT_ACCEL_HIGH);
+        } else {
+            setFrontMode(FRONT_ACCEL_MAX);
+        }
     }
-}
-
-void LEDController::updateFade() {
-    uint8_t r = (currentColor >> 16) & 0xFF;
-    uint8_t g = (currentColor >> 8) & 0xFF;
-    uint8_t b = currentColor & 0xFF;
     
-    uint8_t brightness = beatsin8(map(currentSpeed, 0, 255, 10, 60), 0, 255);
-    
-    CRGB color = CRGB(r, g, b);
-    color.nscale8(brightness);
-    
-    fill_solid(leds, NUM_LEDS, color);
-}
-
-void LEDController::updateStrobe() {
-    uint8_t r = (currentColor >> 16) & 0xFF;
-    uint8_t g = (currentColor >> 8) & 0xFF;
-    uint8_t b = currentColor & 0xFF;
-    
-    if (animationStep % 2 == 0) {
-        fill_solid(leds, NUM_LEDS, CRGB(r, g, b));
-    } else {
-        FastLED.clear();
+    void setRearMode(RearMode mode) {
+        currentRearMode = mode;
     }
-}
-
-void LEDController::updateChase() {
-    FastLED.clear();
     
-    uint8_t r = (currentColor >> 16) & 0xFF;
-    uint8_t g = (currentColor >> 8) & 0xFF;
-    uint8_t b = currentColor & 0xFF;
-    
-    int pos = animationStep % NUM_LEDS;
-    leds[pos] = CRGB(r, g, b);
-    
-    // Tail
-    for (int i = 1; i < 5; i++) {
-        int tailPos = (pos - i + NUM_LEDS) % NUM_LEDS;
-        leds[tailPos] = CRGB(r >> i, g >> i, b >> i);
+    void setTurnSignal(TurnSignal signal) {
+        currentTurnSignal = signal;
     }
-}
-
-void LEDController::updateScanner() {
-    FastLED.clear();
     
-    uint8_t r = (currentColor >> 16) & 0xFF;
-    uint8_t g = (currentColor >> 8) & 0xFF;
-    uint8_t b = currentColor & 0xFF;
+    void setBrightness(uint8_t brightness) {
+        config.brightness = brightness;
+        FastLED.setBrightness(brightness);
+    }
     
-    int pos = beatsin16(map(currentSpeed, 0, 255, 10, 60), 0, NUM_LEDS - 1);
-    leds[pos] = CRGB(r, g, b);
+    void setEnabled(bool enable) {
+        enabled = enable;
+        if (!enabled) {
+            FastLED.clear(true);
+        }
+    }
     
-    // Fade all LEDs
-    fadeToBlackBy(leds, NUM_LEDS, 20);
-}
-
-void LEDController::updateTwinkle() {
-    // Fade all LEDs slightly
-    fadeToBlackBy(leds, NUM_LEDS, 10);
+    Config& getConfig() {
+        return config;
+    }
     
-    // Randomly light up LEDs
-    if (random8() < map(currentSpeed, 0, 255, 5, 50)) {
-        int pos = random16(NUM_LEDS);
-        uint8_t r = (currentColor >> 16) & 0xFF;
-        uint8_t g = (currentColor >> 8) & 0xFF;
-        uint8_t b = currentColor & 0xFF;
-        leds[pos] = CRGB(r, g, b);
+    void emergencyFlash(uint8_t count) {
+        for (uint8_t i = 0; i < count; i++) {
+            fill_solid(frontLeds, LED_FRONT_COUNT, CRGB::Red);
+            fill_solid(rearLeds, LED_REAR_COUNT, CRGB::Red);
+            FastLED.show();
+            delay(100);
+            FastLED.clear(true);
+            delay(100);
+        }
     }
 }

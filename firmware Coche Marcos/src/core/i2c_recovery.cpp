@@ -224,8 +224,9 @@ bool readBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
     dev.consecutiveFailures++;
     
     // Calcular backoff exponencial: 1s, 2s, 4s, 8s, ... (máx 30s)
-    uint32_t backoff = 1000 * (1 << min(dev.consecutiveFailures - 1, (uint8_t)5));
-    backoff = min(backoff, MAX_BACKOFF_MS);
+    uint8_t exponent = (dev.consecutiveFailures - 1 > 5) ? 5 : (dev.consecutiveFailures - 1);
+    uint32_t backoff = 1000 * (1 << exponent);
+    if (backoff > MAX_BACKOFF_MS) backoff = MAX_BACKOFF_MS;
     dev.nextRetryMs = now + backoff;
     
     Logger::errorf("I2C fallo dev 0x%02X (fallos:%d, backoff:%lus)", 
@@ -282,8 +283,9 @@ bool writeBytesWithRetry(uint8_t deviceAddr, uint8_t regAddr,
     
     // FALLO
     dev.consecutiveFailures++;
-    uint32_t backoff = 1000 * (1 << min(dev.consecutiveFailures - 1, (uint8_t)5));
-    backoff = min(backoff, MAX_BACKOFF_MS);
+    uint8_t exponent = (dev.consecutiveFailures - 1 > 5) ? 5 : (dev.consecutiveFailures - 1);
+    uint32_t backoff = 1000 * (1 << exponent);
+    if (backoff > MAX_BACKOFF_MS) backoff = MAX_BACKOFF_MS;
     dev.nextRetryMs = now + backoff;
     
     Logger::errorf("I2C write fallo dev 0x%02X (backoff:%lus)", 

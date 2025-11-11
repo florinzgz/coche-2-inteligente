@@ -236,7 +236,7 @@ void BluetoothController::processPacket(uint8_t* data, size_t len) {
         state.override_active = true;
         state.mode = OverrideMode::FULL;
         state.override_start_ms = millis();
-        Audio::playAlert(Audio::Alert::WARNING);
+        // Audio::playAlert(Audio::Alert::WARNING);  // Audio system not yet implemented
         Serial.println("Bluetooth override ACTIVE - remote control engaged");
     }
     
@@ -256,14 +256,14 @@ void BluetoothController::handleEmergencyStop() {
     PowerMgmt::emergencyStop();
     
     // Play emergency alert
-    Audio::playAlert(Audio::Alert::CRITICAL);
+    // Audio::playAlert(Audio::Alert::CRITICAL);  // Audio system not yet implemented
     
     Serial.println("EMERGENCY STOP activated via Bluetooth!");
 }
 
 void BluetoothController::handleResume() {
     clearOverride();
-    Audio::playAlert(Audio::Alert::INFO);
+    // Audio::playAlert(Audio::Alert::INFO);  // Audio system not yet implemented
     Serial.println("Bluetooth override cleared - normal operation resumed");
 }
 

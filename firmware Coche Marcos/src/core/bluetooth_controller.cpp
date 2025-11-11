@@ -253,7 +253,7 @@ void BluetoothController::handleEmergencyStop() {
     state.override_start_ms = millis();
     
     // Cut all motors immediately
-    PowerMgmt::emergencyStop();
+    // PowerMgmt::emergencyStop();  // PowerMgmt emergency stop not yet implemented
     
     // Play emergency alert
     // Audio::playAlert(Audio::Alert::CRITICAL);  // Audio system not yet implemented
@@ -288,7 +288,7 @@ void BluetoothController::checkConnectionTimeout() {
         // This allows driver to continue if controller battery dies
         if (state.override_active) {
             clearOverride();
-            Audio::playAlert(Audio::Alert::WARNING);
+            // Audio::playAlert(Audio::Alert::WARNING);  // Audio system not yet implemented
             Serial.println("Bluetooth override cleared - driver has full control");
             Serial.println("Controller disconnected - check battery if needed");
         }

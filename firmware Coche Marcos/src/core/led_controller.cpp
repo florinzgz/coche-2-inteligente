@@ -17,6 +17,11 @@ namespace LEDController {
     static bool turnBlinkState = false;
     static uint16_t animationStep = 0;
     
+    // Forward declarations
+    void updateFrontLEDs();
+    void updateRearLEDs();
+    void updateTurnSignals();
+    
     void init() {
         FastLED.addLeds<WS2812B, LED_FRONT_PIN, GRB>(frontLeds, LED_FRONT_COUNT);
         FastLED.addLeds<WS2812B, LED_REAR_PIN, GRB>(rearLeds, LED_REAR_COUNT);

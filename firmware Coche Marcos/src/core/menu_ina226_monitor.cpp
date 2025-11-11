@@ -204,8 +204,8 @@ void MenuINA226Monitor::updateSensorData() {
     for (int i = 0; i < 6; i++) {
         // Check if sensor is online via I2C Recovery
         const I2CRecovery::DeviceState& state = I2CRecovery::getDeviceState(i);
-        _sensors[i].state = static_cast<uint8_t>(state);
-        _sensors[i].online = (state == I2CRecovery::DeviceState::OK);
+        _sensors[i].state = state.online ? 1 : 0;
+        _sensors[i].online = state.online;
         
         if (_sensors[i].online) {
             // Read current and voltage from Sensors module

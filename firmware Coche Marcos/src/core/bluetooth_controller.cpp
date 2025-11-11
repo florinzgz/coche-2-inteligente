@@ -1,7 +1,7 @@
 #include "bluetooth_controller.h"
 #include "config_storage.h"
 #include "power_mgmt.h"
-#include "audio.h"
+// #include "audio.h"  // Audio system not yet implemented
 #include <Preferences.h>
 
 // Static member initialization

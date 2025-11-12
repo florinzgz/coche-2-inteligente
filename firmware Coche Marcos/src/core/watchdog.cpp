@@ -24,8 +24,7 @@ void init() {
     lastFeedTime = millis();
     feedCount = 0;
     
-    Logger::log(Logger::Priority::INFO, "Watchdog", 
-                "WDT inicializado - Timeout: 10s, panic habilitado");
+    Logger::infof("Watchdog: WDT inicializado - Timeout: 10s, panic habilitado");
 }
 
 void feed() {
@@ -41,13 +40,12 @@ void feed() {
     
     // Log cada 100 feeds (~10 segundos si feed se llama cada 100ms)
     if (feedCount % 100 == 0) {
-        Logger::debugf("WDT feed %lu (interval: %lums)", feedCount, interval);
+        Logger::infof("WDT feed %lu (interval: %lums)", feedCount, interval);
     }
     
     // Alerta si el intervalo es muy largo (>80% del timeout)
     if (interval > (WDT_TIMEOUT_SECONDS * 800)) {  // 8 segundos
-        Logger::log(Logger::Priority::WARNING, "Watchdog", 
-                    "Feed interval demasiado largo - Riesgo de reset WDT");
+        Logger::warn("Watchdog: Feed interval demasiado largo - Riesgo de reset WDT");
     }
 }
 
@@ -58,7 +56,7 @@ void disable() {
     esp_task_wdt_deinit();
     initialized = false;
     
-    Logger::log(Logger::Priority::WARNING, "Watchdog", "WDT deshabilitado (DEBUG ONLY)");
+    Logger::warn("Watchdog: WDT deshabilitado (DEBUG ONLY)");
 }
 
 bool isEnabled() {

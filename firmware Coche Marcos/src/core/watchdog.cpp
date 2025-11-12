@@ -78,12 +78,13 @@ void __attribute__((weak)) esp_task_wdt_isr_user_handler(void) {
     // Apagar relés inmediatamente (safe state)
     
     // Apagar motores y auxiliares INMEDIATAMENTE (pines de pins.h)
-    digitalWrite(PIN_RELAY_MOTOR_24V, LOW);
-    digitalWrite(PIN_RELAY_AUX_12V, LOW);
+    digitalWrite(PIN_RELAY_MAIN, LOW);  // Main power relay
+    digitalWrite(PIN_RELAY_TRAC, LOW);  // Traction relay
+    digitalWrite(PIN_RELAY_DIR, LOW);   // Direction relay
+    digitalWrite(PIN_RELAY_SPARE, LOW); // Spare relay
     
-    // Power hold: dejar 1 segundo más para que el reset se complete
+    // Delay para que el reset se complete
     delay(1000);
-    digitalWrite(PIN_RELAY_POWER_HOLD, LOW);
     
     // El WDT reset ocurrirá ahora
 }

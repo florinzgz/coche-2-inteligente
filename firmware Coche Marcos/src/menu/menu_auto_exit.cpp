@@ -1,6 +1,6 @@
 #include "menu_auto_exit.h"
 #include "config_storage.h"
-#include "display.h"
+// #include "display.h"  // Display module not yet implemented
 
 // Static members
 unsigned long MenuAutoExit::lastActivityTime = 0;
@@ -114,6 +114,8 @@ void MenuAutoExit::draw() {
     
     uint8_t remaining = getRemainingSeconds();
     
+    // Display module not yet implemented - draw() disabled temporarily
+    /*
     // Draw countdown in top-right corner
     Display::fillRect(Display::width() - 60, 5, 55, 20, TFT_BLACK);
     Display::setTextColor(remaining < 10 ? TFT_RED : TFT_YELLOW);
@@ -127,4 +129,5 @@ void MenuAutoExit::draw() {
     Display::drawRect(Display::width() - 55, 30, barWidth, 5, TFT_WHITE);
     Display::fillRect(Display::width() - 55, 30, fillWidth, 5, 
                      remaining < 10 ? TFT_RED : TFT_GREEN);
+    */
 }

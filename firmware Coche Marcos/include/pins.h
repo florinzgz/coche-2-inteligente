@@ -69,6 +69,7 @@
 #define PIN_TFT_MOSI      11  // SPI MOSI
 #define PIN_TFT_MISO      12  // SPI MISO
 #define PIN_TFT_SCK       10  // SPI Clock
+#define PIN_TFT_BL        42  // Backlight PWM (0-255 brightness control via LEDC)
 
 // -----------------------
 // Táctil (XPT2046 SPI)
@@ -183,6 +184,7 @@ static inline bool pin_is_assigned(uint8_t gpio) {
     case PIN_TFT_MOSI:
     case PIN_TFT_MISO:
     case PIN_TFT_SCK:
+    case PIN_TFT_BL:
     case PIN_TOUCH_CS:
     case PIN_TOUCH_IRQ:
     case PIN_BTN_LIGHTS:

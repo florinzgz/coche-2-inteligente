@@ -113,9 +113,9 @@ void Sensors::updateCurrent() {
 
     for(int i=0; i<NUM_CURRENTS; i++) {
         // Check device state before reading
-        I2CRecovery::DeviceState state = I2CRecovery::checkDeviceState(i);
+        const I2CRecovery::DeviceState& state = I2CRecovery::getDeviceState(i);
         
-        if (state == I2CRecovery::DeviceState::OFFLINE) {
+        if (!state.online) {
             // Sensor marcado offline, saltar
             sensorOk[i] = false;
             lastCurrent[i] = 0.0f;
@@ -126,9 +126,9 @@ void Sensors::updateCurrent() {
         }
         
         if(!sensorOk[i] || !ina[i]) {
-            // Intentar recuperación si está en backoff
-            if (state == I2CRecovery::DeviceState::BACKOFF) {
-                Logger::infof("INA226 ch %d attempting recovery from backoff", i);
+            // Intentar recuperación si hay tiempo desde último intento
+            if (millis() >= state.nextRetryMs) {
+                Logger::infof("INA226 ch %d attempting recovery", i);
                 if (I2CRecovery::reinitSensor(i, 0x40, i) && ina[i]->begin()) {
                     sensorOk[i] = true;
                     Logger::infof("INA226 ch %d recovered!", i);
@@ -171,9 +171,8 @@ void Sensors::updateCurrent() {
             hasError = true;
         }
         
-        // Si hubo errores, notificar al recovery system
+        // Si hubo errores, marcar sensor como no ok
         if (hasError) {
-            I2CRecovery::handleDeviceFailure(i);
             sensorOk[i] = false;
             continue;
         }

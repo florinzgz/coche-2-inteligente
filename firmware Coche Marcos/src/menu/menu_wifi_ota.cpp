@@ -2,8 +2,8 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include "config_storage.h"
-#include "display.h"
-#include "audio.h"
+// #include "display.h"  // Display module not yet implemented
+// #include "audio.h"  // Audio module not yet implemented
 
 // Static member initialization
 unsigned long MenuWiFiOTA::lastUpdate = 0;

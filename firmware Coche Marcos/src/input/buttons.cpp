@@ -78,7 +78,6 @@ void Buttons::update() {
     lastLights = lights;
     lastMultimedia = multimedia;
     last4x4 = mode4x4;
-    s.batteryIcon = batteryIcon;
 }
 
 const Buttons::State& Buttons::get() {

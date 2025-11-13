@@ -104,8 +104,7 @@ void init() {
     activateRelay(PIN_RELAY_AUX_12V);
     currentState = PowerState::POWER_HOLD;
     
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", 
-                "Inicializado - Power Hold y 12V Auxiliares activos, esperando centrado volante");
+    Logger::info("PowerMgmt: Inicializado - Power Hold y 12V Auxiliares activos, esperando centrado volante");
 }
 
 void update() {
@@ -113,7 +112,7 @@ void update() {
     
     // Detección de llave OFF → Iniciar apagado
     if (!keyOn && currentState >= PowerState::POWER_HOLD && currentState < PowerState::SHUTDOWN_START) {
-        Logger::log(Logger::Priority::WARNING, "PowerMgmt", "Llave OFF detectada - Iniciando apagado");
+        Logger::warn("PowerMgmt: Llave OFF detectada - Iniciando apagado");
         startShutdown();
         return;
     }
@@ -128,7 +127,7 @@ void update() {
             // Esperando notificación de volante centrado
             // Nota: 12V auxiliares ya está activo desde init() para permitir búsqueda de centro
             if (steeringCentered) {
-                Logger::log(Logger::Priority::INFO, "PowerMgmt", "Volante centrado - Verificando sensores ruedas");
+                Logger::info("PowerMgmt: Volante centrado - Verificando sensores ruedas");
                 currentState = PowerState::AUX_POWER;
             }
             break;
@@ -136,7 +135,7 @@ void update() {
         case PowerState::AUX_POWER:
             // Esperando notificación de sensores ruedas OK
             if (wheelSensorsOK) {
-                Logger::log(Logger::Priority::INFO, "PowerMgmt", "Sensores ruedas OK - Activando 24V motores");
+                Logger::info("PowerMgmt: Sensores ruedas OK - Activando 24V motores");
                 enableMotorPower();
                 currentState = PowerState::FULL_POWER;
             }
@@ -148,7 +147,7 @@ void update() {
             
         case PowerState::SHUTDOWN_START:
             // Inicio secuencia apagado - Reproducir audio
-            Logger::log(Logger::Priority::WARNING, "PowerMgmt", "Reproduciendo audio de apagado");
+            Logger::warn("PowerMgmt: Reproduciendo audio de apagado");
             Alerts::play(Audio::AUDIO_APAGAR);  // Asumiendo que existe este audio
             audioStartTime = millis();
             currentState = PowerState::SHUTDOWN_AUDIO;
@@ -157,7 +156,7 @@ void update() {
         case PowerState::SHUTDOWN_AUDIO:
             // Esperar reproducción audio (2 segundos)
             if (millis() - audioStartTime >= AUDIO_WAIT_MS) {
-                Logger::log(Logger::Priority::WARNING, "PowerMgmt", "Cortando 24V motores");
+                Logger::warn("PowerMgmt: Cortando 24V motores");
                 disableMotorPower();
                 currentState = PowerState::SHUTDOWN_MOTORS;
             }
@@ -166,7 +165,7 @@ void update() {
         case PowerState::SHUTDOWN_MOTORS:
             // Pequeña pausa tras cortar motores (100ms)
             if (millis() - audioStartTime >= (AUDIO_WAIT_MS + 100)) {
-                Logger::log(Logger::Priority::WARNING, "PowerMgmt", "Cortando 12V auxiliares");
+                Logger::warn("PowerMgmt: Cortando 12V auxiliares");
                 disableAuxPower();
                 shutdownStartTime = millis();
                 currentState = PowerState::SHUTDOWN_FINAL;
@@ -176,7 +175,7 @@ void update() {
         case PowerState::SHUTDOWN_FINAL:
             // Esperar 5 segundos desde inicio apagado total
             if (millis() - shutdownStartTime >= SHUTDOWN_DELAY_MS) {
-                Logger::log(Logger::Priority::WARNING, "PowerMgmt", "Liberando power hold - Sistema se apagará");
+                Logger::warn("PowerMgmt: Liberando power hold - Sistema se apagará");
                 deactivateRelay(PIN_RELAY_POWER_HOLD);
                 currentState = PowerState::OFF;
                 // Aquí el buck se apagará y ESP32 perderá alimentación
@@ -190,22 +189,22 @@ void update() {
 
 void enableAuxPower() {
     activateRelay(PIN_RELAY_AUX_12V);
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "12V Auxiliares activado");
+    Logger::info("PowerMgmt: 12V Auxiliares activado");
 }
 
 void enableMotorPower() {
     activateRelay(PIN_RELAY_MOTOR_24V);
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "24V Motores activado");
+    Logger::info("PowerMgmt: 24V Motores activado");
 }
 
 void disableMotorPower() {
     deactivateRelay(PIN_RELAY_MOTOR_24V);
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "24V Motores desactivado");
+    Logger::info("PowerMgmt: 24V Motores desactivado");
 }
 
 void disableAuxPower() {
     deactivateRelay(PIN_RELAY_AUX_12V);
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "12V Auxiliares desactivado");
+    Logger::info("PowerMgmt: 12V Auxiliares desactivado");
 }
 
 void startShutdown() {
@@ -229,12 +228,12 @@ bool isFullPowerOn() {
 
 void notifySteeringCentered() {
     steeringCentered = true;
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "Notificación: Volante centrado");
+    Logger::info("PowerMgmt: Notificación: Volante centrado");
 }
 
 void notifyWheelSensorsOK() {
     wheelSensorsOK = true;
-    Logger::log(Logger::Priority::INFO, "PowerMgmt", "Notificación: Sensores ruedas OK");
+    Logger::info("PowerMgmt: Notificación: Sensores ruedas OK");
 }
 
 } // namespace PowerMgmt

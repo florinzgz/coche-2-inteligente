@@ -38,7 +38,7 @@ void Buttons::init() {
     pinMode(PIN_BTN_LIGHTS,    INPUT_PULLUP);
     pinMode(PIN_BTN_MEDIA,     INPUT_PULLUP);
     pinMode(PIN_BTN_4X4,       INPUT_PULLUP);
-    pinMode(PIN_BTN_BATTERY,   INPUT_PULLUP);
+    // PIN_BTN_BATTERY removed - no longer available
 
     s = {false, false, false, false};
     lastLights = lastMultimedia = last4x4 = false;
@@ -57,7 +57,7 @@ void Buttons::update() {
     bool lights      = readPin(PIN_BTN_LIGHTS, 0);
     bool multimedia  = readPin(PIN_BTN_MEDIA, 1);
     bool mode4x4     = readPin(PIN_BTN_4X4, 2);
-    bool batteryIcon = readPin(PIN_BTN_BATTERY, 3);
+    // batteryIcon button removed - no longer available
 
     if(lights && !lastLights) {
         s.lights = !s.lights;

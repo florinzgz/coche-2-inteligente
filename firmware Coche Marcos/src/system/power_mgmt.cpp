@@ -148,7 +148,7 @@ void update() {
         case PowerState::SHUTDOWN_START:
             // Inicio secuencia apagado - Reproducir audio
             Logger::warn("PowerMgmt: Reproduciendo audio de apagado");
-            Alerts::play(Audio::AUDIO_APAGAR);  // Asumiendo que existe este audio
+            Alerts::play(Audio::AUDIO_APAGADO);  // "Cerrando sistemas. Hasta pronto."
             audioStartTime = millis();
             currentState = PowerState::SHUTDOWN_AUDIO;
             break;

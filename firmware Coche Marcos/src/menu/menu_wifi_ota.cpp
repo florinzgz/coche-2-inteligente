@@ -219,23 +219,23 @@ void MenuWiFiOTA::connectWiFi() {
     // Use credentials from config or default
     WiFi.begin("SSID_FROM_CONFIG", "PASSWORD_FROM_CONFIG");
     
-    Audio::playAlert(Audio::ALERT_BEEP);
+    // Audio::playAlert(Audio::ALERT_BEEP);  // Audio module not implemented yet
 }
 
 void MenuWiFiOTA::disconnectWiFi() {
     WiFi.disconnect();
-    Audio::playAlert(Audio::ALERT_BEEP);
+    // Audio::playAlert(Audio::ALERT_BEEP);  // Audio module not implemented yet
 }
 
 void MenuWiFiOTA::checkForUpdates() {
     if (!isConnected()) {
-        Audio::playAlert(Audio::ALERT_ERROR);
+        // Audio::playAlert(Audio::ALERT_ERROR);  // Audio module not implemented yet
         return;
     }
     
     // TODO: Query GitHub releases or update server
     // For now, simulate check
-    Audio::playAlert(Audio::ALERT_BEEP);
+    // Audio::playAlert(Audio::ALERT_BEEP);  // Audio module not implemented yet
     
     // Example: updateAvailable = true; latestVersion = "v2.0.1";
 }
@@ -249,7 +249,7 @@ void MenuWiFiOTA::installUpdate() {
     // TODO: Check battery > 50%
     
     isUpdating = true;
-    Audio::playAlert(Audio::ALERT_BEEP);
+    // Audio::playAlert(Audio::ALERT_BEEP);  // Audio module not implemented yet
     
     // ArduinoOTA will handle the actual update
 }

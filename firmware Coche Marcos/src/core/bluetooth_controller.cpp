@@ -4,8 +4,13 @@
 // #include "audio.h"  // Audio system not yet implemented
 #include <Preferences.h>
 
+// ⚠️ ESP32-S3 DOES NOT SUPPORT CLASSIC BLUETOOTH ⚠️
+// BluetoothSerial requires classic Bluetooth (not available on ESP32-S3)
+// ESP32-S3 only supports BLE (Bluetooth Low Energy)
+// Bluetooth controller functionality is disabled for this hardware
+
 // Static member initialization
-BluetoothSerial BluetoothController::btSerial;
+// BluetoothSerial BluetoothController::btSerial;  // Not supported on ESP32-S3
 ControllerState BluetoothController::state = {};
 unsigned long BluetoothController::last_update_ms = 0;
 String BluetoothController::paired_device_mac = "";
@@ -15,11 +20,15 @@ String BluetoothController::paired_device_mac = "";
 #define BT_UPDATE_INTERVAL_MS 100  // 10Hz
 
 void BluetoothController::init() {
-    // Initialize Bluetooth Serial
-    btSerial.begin("Smart Car ESP32");
+    // Bluetooth disabled on ESP32-S3 (classic BT not supported)
+    Serial.println("⚠️ Bluetooth Controller: DISABLED (ESP32-S3 does not support classic Bluetooth)");
+    Serial.println("   ESP32-S3 only supports BLE. Use BLE controller or switch to ESP32/ESP32-C3");
+    
+    // Initialize Bluetooth Serial - DISABLED FOR ESP32-S3
+    // btSerial.begin("Smart Car ESP32");
     
     // Load paired device from EEPROM
-    loadPairing();
+    // loadPairing();
     
     // Initialize state
     state.connected = false;
@@ -41,11 +50,13 @@ void BluetoothController::init() {
     state.button_y = false;
     state.button_start = false;
     state.button_select = false;
-    
-    Serial.println("Bluetooth Controller initialized - waiting for 8BitDo Zero 2");
 }
 
 void BluetoothController::update() {
+    // Bluetooth disabled on ESP32-S3 - no updates needed
+    return;
+    
+    /* DISABLED FOR ESP32-S3
     unsigned long now = millis();
     
     // Rate limit updates to 10Hz
@@ -72,6 +83,7 @@ void BluetoothController::update() {
     
     // Check connection timeout
     checkConnectionTimeout();
+    */
 }
 
 bool BluetoothController::isConnected() {
@@ -79,16 +91,16 @@ bool BluetoothController::isConnected() {
 }
 
 bool BluetoothController::startPairing() {
-    Serial.println("Starting Bluetooth pairing mode...");
-    // ESP32 Bluetooth is already discoverable
-    return true;
+    Serial.println("⚠️ Bluetooth pairing unavailable - ESP32-S3 does not support classic Bluetooth");
+    // ESP32 Bluetooth is already discoverable - DISABLED FOR ESP32-S3
+    return false;
 }
 
 void BluetoothController::disconnect() {
-    btSerial.disconnect();
+    // btSerial.disconnect();  // Disabled for ESP32-S3
     state.connected = false;
     clearOverride();
-    Serial.println("Bluetooth controller disconnected");
+    Serial.println("Bluetooth controller disconnected (N/A on ESP32-S3)");
 }
 
 bool BluetoothController::isOverrideActive() {

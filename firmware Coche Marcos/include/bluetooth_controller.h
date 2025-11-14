@@ -2,7 +2,11 @@
 #define BLUETOOTH_CONTROLLER_H
 
 #include <Arduino.h>
-#include <BluetoothSerial.h>
+
+// ESP32-S3 does NOT support classic Bluetooth (only BLE)
+// BluetoothSerial requires classic Bluetooth which is not available on ESP32-S3
+// Bluetooth functionality is disabled for this hardware
+// #include <BluetoothSerial.h>  // Not supported on ESP32-S3
 
 // 8BitDo Zero 2 control mapping (SIMPLIFIED)
 // D-PAD Arrows:
@@ -86,7 +90,7 @@ public:
     static void loadPairing();
 
 private:
-    static BluetoothSerial btSerial;
+    // static BluetoothSerial btSerial;  // Not supported on ESP32-S3 (classic BT only)
     static ControllerState state;
     static unsigned long last_update_ms;
     static String paired_device_mac;

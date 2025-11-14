@@ -13,7 +13,8 @@ enum class MenuType {
     WIFI_CONFIG,
     INA226_MONITOR,
     STATISTICS,
-    QUICK_MENU
+    QUICK_MENU,
+    HIDDEN_MENU      // Menú oculto con calibraciones y datos detallados
 };
 
 // Niveles de alerta
@@ -52,12 +53,15 @@ struct CarData {
     float odoTrip;            // Odómetro parcial en km
     
     // Energía (INA226 sensores)
+    float voltage;            // Voltaje batería 24V (INA226 canal 4) - alias de batteryVoltage
     float batteryVoltage;     // Voltaje batería 24V (INA226 canal 4)
     float batteryPercent;     // Porcentaje batería (0-100, calculado)
+    float current;            // Corriente total batería - alias de batteryCurrent
     float batteryCurrent;     // Corriente total batería
     float batteryPower;       // Potencia instantánea (W)
     
     // Temperaturas (DS18B20)
+    float temperature;        // Temperatura principal (motor/pedal) - alias de motorTemp[0]
     float motorTemp[4];       // Temperatura 4 motores tracción
     float ambientTemp;        // Temperatura ambiente
     float controllerTemp;     // Temperatura controlador
@@ -71,7 +75,9 @@ struct CarData {
     SystemStatus status;      // Estado del sistema
     
     // Pedal y dirección
+    float pedalPosition;      // Posición pedal acelerador (0-100%) - alias de throttlePercent
     float throttlePercent;    // Posición pedal acelerador (0-100%)
+    float encoderValue;       // Valor crudo del encoder del pedal
     float steeringAngle;      // Ángulo volante (grados, desde encoder)
 };
 

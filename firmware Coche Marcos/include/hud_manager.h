@@ -79,6 +79,26 @@ public:
      * @param brightness Brillo (0-255)
      */
     static void setBrightness(uint8_t brightness);
+    
+    /**
+     * @brief Activa/desactiva el menú oculto
+     * Requiere combinación de botones o gesto especial
+     * @param activate true para activar, false para desactivar
+     */
+    static void activateHiddenMenu(bool activate);
+    
+    /**
+     * @brief Verifica si el menú oculto está activo
+     * @return true si está activo
+     */
+    static bool isHiddenMenuActive();
+    
+    /**
+     * @brief Procesa pulsación larga de botón (para activar menú oculto)
+     * @param buttonId ID del botón presionado
+     * @param duration Duración de la pulsación (ms)
+     */
+    static void handleLongPress(uint8_t buttonId, uint32_t duration);
 
 private:
     static MenuType currentMenu;
@@ -96,10 +116,16 @@ private:
     static void renderINA226Monitor();
     static void renderStatistics();
     static void renderQuickMenu();
+    static void renderHiddenMenu();
     
     // Helpers optimización
     static void updateOnlyChanged();
     static bool dataHasChanged();
+    
+    // Hidden menu state
+    static bool hiddenMenuActive;
+    static uint32_t longPressStartMs;
+    static uint8_t longPressButtonId;
 };
 
 #endif // HUD_MANAGER_H

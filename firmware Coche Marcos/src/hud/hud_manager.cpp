@@ -9,6 +9,9 @@ CarData HUDManager::carData = {};
 uint32_t HUDManager::lastUpdateMs = 0;
 bool HUDManager::needsRedraw = true;
 uint8_t HUDManager::brightness = 200;
+bool HUDManager::hiddenMenuActive = false;
+uint32_t HUDManager::longPressStartMs = 0;
+uint8_t HUDManager::longPressButtonId = 0;
 
 // TFT singleton
 static TFT_eSPI tft = TFT_eSPI();
@@ -74,6 +77,9 @@ void HUDManager::update() {
         case MenuType::QUICK_MENU:
             renderQuickMenu();
             break;
+        case MenuType::HIDDEN_MENU:
+            renderHiddenMenu();
+            break;
         default:
             // Sin menú activo - usar HUD básico
             HUD::update();
@@ -128,6 +134,31 @@ void HUDManager::handleTouch(int16_t x, int16_t y, bool pressed) {
 void HUDManager::setBrightness(uint8_t newBrightness) {
     brightness = newBrightness;
     ledcWrite(0, brightness);
+}
+
+void HUDManager::activateHiddenMenu(bool activate) {
+    hiddenMenuActive = activate;
+    if (activate) {
+        currentMenu = MenuType::HIDDEN_MENU;
+    } else {
+        currentMenu = MenuType::DASHBOARD;
+    }
+    needsRedraw = true;
+}
+
+bool HUDManager::isHiddenMenuActive() {
+    return hiddenMenuActive;
+}
+
+void HUDManager::handleLongPress(uint8_t buttonId, uint32_t duration) {
+    // Activar menú oculto con pulsación larga (> 3 segundos) en botón específico
+    // Por ejemplo, botón de configuración o combinación de botones
+    const uint32_t LONG_PRESS_DURATION = 3000;  // 3 segundos
+    
+    if (duration >= LONG_PRESS_DURATION) {
+        // Activar/desactivar menú oculto
+        activateHiddenMenu(!hiddenMenuActive);
+    }
 }
 
 // ===== Funciones de renderizado =====
@@ -303,4 +334,92 @@ void HUDManager::renderQuickMenu() {
     tft.println("[ ] Monitor INA226");
     tft.setCursor(20, 150);
     tft.println("[ ] Estadisticas");
+}
+
+void HUDManager::renderHiddenMenu() {
+    // Menú oculto con TODOS los datos de calibración y sensores
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.setTextSize(2);
+    tft.setCursor(10, 5);
+    tft.println("=== MENU OCULTO ===");
+    
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    
+    // Sección 1: Voltaje y Corriente (INA226)
+    tft.setCursor(5, 30);
+    tft.print("ENERGIA:");
+    tft.setCursor(5, 45);
+    tft.printf("Voltaje: %6.2fV  (%3.0f%%)", carData.voltage, carData.batteryPercent);
+    tft.setCursor(5, 60);
+    tft.printf("Corriente: %6.2fA", carData.current);
+    tft.setCursor(5, 75);
+    tft.printf("Potencia: %7.1fW", carData.batteryPower);
+    
+    // Sección 2: Corrientes motores (INA226 canales 0-3)
+    tft.setCursor(5, 95);
+    tft.print("MOTORES:");
+    tft.setCursor(5, 110);
+    tft.printf("FL:%5.1fA FR:%5.1fA", carData.motorCurrent[0], carData.motorCurrent[1]);
+    tft.setCursor(5, 125);
+    tft.printf("RL:%5.1fA RR:%5.1fA", carData.motorCurrent[2], carData.motorCurrent[3]);
+    tft.setCursor(5, 140);
+    tft.printf("Direccion: %5.1fA", carData.steeringCurrent);
+    
+    // Sección 3: Temperaturas (DS18B20)
+    tft.setCursor(250, 30);
+    tft.print("TEMPERATURAS:");
+    tft.setCursor(250, 45);
+    tft.printf("Motor Principal: %4.1fC", carData.temperature);
+    tft.setCursor(250, 60);
+    tft.printf("M1:%3.0f M2:%3.0f", carData.motorTemp[0], carData.motorTemp[1]);
+    tft.setCursor(250, 75);
+    tft.printf("M3:%3.0f M4:%3.0f", carData.motorTemp[2], carData.motorTemp[3]);
+    tft.setCursor(250, 90);
+    tft.printf("Ambiente: %4.1fC", carData.ambientTemp);
+    tft.setCursor(250, 105);
+    tft.printf("Controlador: %4.1fC", carData.controllerTemp);
+    
+    // Sección 4: Pedal y Encoder
+    tft.setCursor(250, 125);
+    tft.print("PEDAL:");
+    tft.setCursor(250, 140);
+    tft.printf("Posicion: %5.1f%%", carData.pedalPosition);
+    tft.setCursor(250, 155);
+    tft.printf("Encoder raw: %6.0f", carData.encoderValue);
+    tft.setCursor(250, 170);
+    tft.printf("Angulo volante: %5.1f", carData.steeringAngle);
+    
+    // Sección 5: Velocidad y RPM
+    tft.setCursor(5, 160);
+    tft.print("MOVIMIENTO:");
+    tft.setCursor(5, 175);
+    tft.printf("Velocidad: %5.1f km/h", carData.speed);
+    tft.setCursor(5, 190);
+    tft.printf("RPM: %6.0f", carData.rpm);
+    
+    // Sección 6: Odómetros
+    tft.setCursor(5, 210);
+    tft.printf("Odo Total: %8.2f km", carData.odoTotal);
+    tft.setCursor(5, 225);
+    tft.printf("Odo Parcial: %6.2f km", carData.odoTrip);
+    
+    // Sección 7: Estado del sistema
+    tft.setCursor(5, 245);
+    tft.print("ESTADO:");
+    tft.setCursor(5, 260);
+    tft.print("Marcha: ");
+    switch (carData.gear) {
+        case GearPosition::PARK:    tft.print("PARK"); break;
+        case GearPosition::REVERSE: tft.print("REVERSA"); break;
+        case GearPosition::NEUTRAL: tft.print("NEUTRAL"); break;
+        case GearPosition::DRIVE1:  tft.print("DRIVE 1"); break;
+        case GearPosition::DRIVE2:  tft.print("DRIVE 2"); break;
+    }
+    
+    // Instrucciones salida
+    tft.setTextColor(TFT_CYAN, TFT_BLACK);
+    tft.setCursor(250, 280);
+    tft.print("Pulse 3s para salir");
 }

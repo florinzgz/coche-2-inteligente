@@ -36,6 +36,8 @@
 
 // HUD y Audio
 #include "hud.h"
+#include "hud_manager.h"
+#include "car_sensors.h"
 #include "dfplayer.h"
 #include "queue.h"
 #include "alerts.h"
@@ -64,7 +66,13 @@ void setup() {
     WiFiManager::init();
     
     Relays::init();
-    HUD::init();
+    
+    // Initialize unified sensor reader
+    CarSensors::init();
+    
+    // Initialize advanced HUD manager
+    HUDManager::init();
+    
     Audio::DFPlayer::init();
     Audio::AudioQueue::init();
 
@@ -89,7 +97,7 @@ void setup() {
     BluetoothController::init();
 
     // --- Logo de arranque ---
-    HUD::showLogo();
+    HUDManager::showLogo();
     Alerts::play(Audio::AUDIO_INICIO);
     delay(2000);
 
@@ -97,11 +105,11 @@ void setup() {
     auto health = System::selfTest();
     if (health.ok) {
         Steering::center();
-        HUD::showReady();
+        HUDManager::showReady();
         Relays::enablePower();
         Alerts::play(Audio::AUDIO_MODULO_OK);
     } else {
-        HUD::showError();
+        HUDManager::showError("System check failed");
         Alerts::play(Audio::AUDIO_ERROR_GENERAL);
 
         // Opcional: imprimir detalle de qué falló
@@ -111,9 +119,17 @@ void setup() {
         Serial.printf("Temps OK: %s\n", health.tempsOK ? "YES" : "NO");
         Serial.printf("Wheels OK: %s\n", health.wheelsOK ? "YES" : "NO");
     }
+    
+    // Show advanced dashboard
+    HUDManager::showMenu(MenuType::DASHBOARD);
 }
 
 void loop() {
+    static uint32_t lastHudUpdate = 0;
+    const uint32_t HUD_UPDATE_INTERVAL = 33; // 30 FPS (~33ms per frame)
+    
+    uint32_t now = millis();
+    
     // CRITICAL: Feed watchdog at start of every loop iteration
     Watchdog::feed();
     
@@ -143,8 +159,15 @@ void loop() {
     TCSSystem::update();
     RegenAI::update();
 
-    // HUD
-    HUD::update();
+    // HUD - Update at fixed 30 FPS for fluid rendering
+    if (now - lastHudUpdate >= HUD_UPDATE_INTERVAL) {
+        lastHudUpdate = now;
+        
+        // Read all car sensors and update HUD
+        CarData data = CarSensors::readAll();
+        HUDManager::updateCarData(data);
+        HUDManager::update();
+    }
 
     // Audio
     Audio::AudioQueue::update();
@@ -156,5 +179,5 @@ void loop() {
     System::update();
     // Logger::update(); // Logger no tiene método update
 
-    delay(20); // ~50 Hz
+    delay(10); // ~100 Hz main loop, HUD updates at 30 Hz internally
 }

@@ -154,7 +154,6 @@ void CarSensors::readGear() {
         case Shifter::N: lastData.gear = GearPosition::NEUTRAL; break;
         case Shifter::D1: lastData.gear = GearPosition::DRIVE1; break;
         case Shifter::D2: lastData.gear = GearPosition::DRIVE2; break;
-        case 4: lastData.gear = GearPosition::DRIVE2; break;
         default: lastData.gear = GearPosition::NEUTRAL; break;
     }
 }

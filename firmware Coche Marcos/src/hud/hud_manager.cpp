@@ -251,9 +251,13 @@ void HUDManager::renderCalibration() {
     
     tft.setTextSize(1);
     tft.setCursor(20, 60);
-    tft.println("Angulo volante: %d grados", (int)carData.steeringAngle);
+    tft.print("Angulo volante: ");
+    tft.print((int)carData.steeringAngle);
+    tft.println(" grados");
     tft.setCursor(20, 90);
-    tft.println("Pedal acelerador: %d%%", (int)carData.throttlePercent);
+    tft.print("Pedal acelerador: ");
+    tft.print((int)carData.throttlePercent);
+    tft.println("%");
 }
 
 void HUDManager::renderHardwareTest() {

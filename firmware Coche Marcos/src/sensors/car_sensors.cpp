@@ -13,15 +13,15 @@ uint32_t CarSensors::lastSecondaryRead = 0;
 
 void CarSensors::init() {
     // Inicializar sensores de corriente (INA226)
-    CurrentSensor::init();
+    Sensors::initCurrent();
     
     // Inicializar sensores de temperatura
-    TemperatureSensor::init();
+    Sensors::initTemperature();
     
     // Inicializar otros sensores
     Pedal::init();
     Steering::init();
-    Wheels::init();
+    Sensors::initWheels();
     
     // Inicializar datos
     memset(&lastData, 0, sizeof(CarData));
@@ -106,28 +106,29 @@ void CarSensors::readSecondary() {
 void CarSensors::readINA226Sensors() {
     // Leer 4 sensores INA226 de motores (canales 0-3)
     for (int i = 0; i < 4; i++) {
-        lastData.motorCurrent[i] = CurrentSensor::getCurrent(i);
+        lastData.motorCurrent[i] = Sensors::getCurrent(i);
     }
     
     // Leer sensor INA226 batería (canal 4)
-    lastData.batteryCurrent = CurrentSensor::getCurrent(4);
-    lastData.batteryVoltage = CurrentSensor::getVoltage(4);
+    lastData.batteryCurrent = Sensors::getCurrent(4);
+    lastData.batteryVoltage = Sensors::getVoltage(4);
     
     // Leer sensor INA226 dirección (canal 5)
-    lastData.steeringCurrent = CurrentSensor::getCurrent(5);
+    lastData.steeringCurrent = Sensors::getCurrent(5);
 }
 
 void CarSensors::readTemperatureSensors() {
     // Leer 4 sensores de temperatura de motores
     for (int i = 0; i < 4; i++) {
-        lastData.motorTemp[i] = TemperatureSensor::getTemperature(i);
+        lastData.motorTemp[i] = Sensors::getTemperature(i);
     }
     
     // Leer temperatura ambiente (sensor 4)
-    lastData.ambientTemp = TemperatureSensor::getTemperature(4);
+    lastData.ambientTemp = Sensors::getTemperature(4);
     
     // Leer temperatura controlador (sensor 5)
-    lastData.controllerTemp = TemperatureSensor::getTemperature(5);
+    // Nota: Solo hay 5 sensores (0-4), usando 4 para controlador si disponible
+    lastData.controllerTemp = Sensors::getTemperature(4);
 }
 
 void CarSensors::readEncoders() {

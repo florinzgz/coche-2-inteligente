@@ -137,22 +137,23 @@ void CarSensors::readEncoders() {
 }
 
 void CarSensors::readPedal() {
-    lastData.throttlePercent = Pedal::getPosition();
+    lastData.throttlePercent = Pedal::get().percent;
 }
 
 void CarSensors::readSteering() {
-    lastData.steeringAngle = Steering::getAngle();
+    lastData.steeringAngle = Steering::get().angleDeg;
 }
 
 void CarSensors::readGear() {
-    int shifterPos = Shifter::getPosition();
+    Shifter::Gear shifterGear = Shifter::get().gear;
     
-    // Mapear posición shifter a GearPosition
-    switch (shifterPos) {
-        case 0: lastData.gear = GearPosition::PARK; break;
-        case 1: lastData.gear = GearPosition::REVERSE; break;
-        case 2: lastData.gear = GearPosition::NEUTRAL; break;
-        case 3: lastData.gear = GearPosition::DRIVE1; break;
+    // Mapear Shifter::Gear a GearPosition
+    switch (shifterGear) {
+        case Shifter::P: lastData.gear = GearPosition::PARK; break;
+        case Shifter::R: lastData.gear = GearPosition::REVERSE; break;
+        case Shifter::N: lastData.gear = GearPosition::NEUTRAL; break;
+        case Shifter::D1: lastData.gear = GearPosition::DRIVE1; break;
+        case Shifter::D2: lastData.gear = GearPosition::DRIVE2; break;
         case 4: lastData.gear = GearPosition::DRIVE2; break;
         default: lastData.gear = GearPosition::NEUTRAL; break;
     }
